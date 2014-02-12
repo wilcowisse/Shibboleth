@@ -1,0 +1,8 @@
+shibboleth
+shibboleth.actions
+shibboleth.data
+shibboleth.data.github
+shibboleth.data.sql
+shibboleth.git
+shibboleth.gui
+shibboleth.model
