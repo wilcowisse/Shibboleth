@@ -45,7 +45,7 @@ import org.openide.util.Lookup;
 public class GitGraph {
 	
 	/**
-	 * Minimal edge size. 
+	 * Minimum edge size. 
 	 */
 	public static float EDGE_SIZE_MIN = 1f;
 	public static float EDGE_SIZE_MAX = 5f;
@@ -74,7 +74,7 @@ public class GitGraph {
 	
 	@SuppressWarnings("rawtypes")
 	public GitGraph(){
-		// bah... singletons :#
+		// bah... singletons :$
         ProjectController pc = Lookup.getDefault().lookup(ProjectController.class);
         pc.newProject();
         workspace = pc.getCurrentWorkspace();
@@ -122,6 +122,7 @@ public class GitGraph {
 		Node userNode = directedGraph.getNode(user.login);
 		if(userNode == null){
 			userNode = graphModel.factory().newNode(user.login);
+			
 			userNode.getNodeData().setColor(84f/255f, 235f/255f, 122f/255f);
 			userNode.getNodeData().setLabel(user.login);
 			userNode.getNodeData().getAttributes().setValue(typeCol.getIndex(), "user");
@@ -139,6 +140,10 @@ public class GitGraph {
 	 * @return The Node belonging to the repo.
 	 */
 	public Node add(SimpleRepo repo){
+		return add(repo, false);
+	}
+	
+	public Node add(SimpleRepo repo, boolean hasContributionInfo){
 		Node repoNode = directedGraph.getNode(repo.full_name);
 		if(repoNode == null){
 			repoNode = graphModel.factory().newNode(repo.full_name);

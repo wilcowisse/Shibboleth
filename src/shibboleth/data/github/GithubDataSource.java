@@ -80,6 +80,9 @@ public class GithubDataSource implements DataSource{
 		@Key
 	    public String access_token = null;
 		
+		@Key
+		public int per_page=100;
+		
 		public GithubUrl(String path){
 			super("https://api.github.com");
 			setRawPath(path);
@@ -173,7 +176,12 @@ public class GithubDataSource implements DataSource{
 				.withAccessToken(accessToken);
 			Repo[] repos = null;
 			try {
-				repos = doRequest(url, Repo[].class);			
+				repos = doRequest(url, Repo[].class);
+				
+				//TODO: implement pagination!
+				if(repos.length == 100){
+					System.err.println("WARNING: full page returned in getRepos for user "+user);
+				}
 			}catch(HttpResponseException e){
 				System.out.println(e.getMessage());
 			}catch (IOException e) {
@@ -200,6 +208,12 @@ public class GithubDataSource implements DataSource{
 		RESTContribution[] rContributions = null;
 		try {
 			rContributions = doRequest(url, RESTContribution[].class);
+			
+			//TODO: implement pagination!
+			if(rContributions.length == 100){
+				System.err.println("WARNING: full page returned in getContributions for repo "+fullRepoName);
+			}
+			
 		}catch(HttpResponseException e){
 			System.out.println(e.getMessage());
 		}catch (IOException e) {

@@ -19,7 +19,7 @@ public class CliActionListener implements ActionListener {
 	@Override
 	public void messagePushed(String message, Object[] objects) {
 		System.out.println();
-		System.out.println(" | SHIBBOLETH MESSAGE");
+		System.out.println(" | MESSAGE");
 		printBar(message.length());
 		System.out.println(" | " + message);
 		printBar(message.length());
@@ -34,7 +34,7 @@ public class CliActionListener implements ActionListener {
 	@Override
 	public void messagePushed(String message) {
 		System.out.println();
-		System.out.println(" | SHIBBOLETH MESSAGE");
+		System.out.println(" | MESSAGE");
 		printBar(message.length());
 		System.out.println(" | " + message);
 		printBar(message.length());

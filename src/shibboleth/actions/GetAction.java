@@ -1,7 +1,6 @@
 package shibboleth.actions;
 
 import shibboleth.data.DataSource;
-import shibboleth.data.DataUtil;
 import shibboleth.data.JavaScriptFilter;
 import shibboleth.data.RepoFilter;
 import shibboleth.data.TransparantFilter;
@@ -11,6 +10,7 @@ import shibboleth.model.Repo;
 import shibboleth.model.SimpleRepo;
 import shibboleth.model.SimpleUser;
 import shibboleth.model.User;
+import shibboleth.util.GithubUtil;
 
 /**
  * Retrieve a Github artifact, i.e. a user, repo or contributions. Subsequently store it to the 
@@ -106,7 +106,7 @@ public class GetAction extends ShibbolethAction{
 		if(u != null){
 			Repo[] rs = source.getRepos(u.login, filter, ensureAll);
 			
-			for(Contribution c : DataUtil.reposToContributions(rs, u)){
+			for(Contribution c : GithubUtil.reposToContributions(rs, u)){
 				graph.addContribution(c);
 			}
 			

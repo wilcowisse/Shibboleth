@@ -11,7 +11,6 @@ import java.util.List;
 import com.mysql.jdbc.Statement;
 
 import shibboleth.data.DataStore;
-import shibboleth.data.DataUtil;
 import shibboleth.data.RepoFilter;
 import shibboleth.data.TransparantFilter;
 import shibboleth.model.Contribution;
@@ -20,6 +19,7 @@ import shibboleth.model.Repo;
 import shibboleth.model.SimpleRepo;
 import shibboleth.model.SimpleUser;
 import shibboleth.model.User;
+import shibboleth.util.GithubUtil;
 
 /**
  * This class represents a data store on top of a MySql Database
@@ -427,7 +427,7 @@ public class SqlDataStore implements DataStore{
 		int res = 0;
 		try {
 			storedAllContributionsByUser(user, false);
-			for(Contribution c : DataUtil.reposToContributions(
+			for(Contribution c : GithubUtil.reposToContributions(
 					getRepos(user, new TransparantFilter(), false), new SimpleUser(user)))
 			{
 				storedAllContributionsForRepo(c.getRepo().full_name, false);

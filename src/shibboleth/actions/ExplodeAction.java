@@ -1,21 +1,22 @@
 package shibboleth.actions;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 
 import shibboleth.data.DataStore;
-import shibboleth.data.DataUtil;
 import shibboleth.data.JavaScriptFilter;
 import shibboleth.data.RepoFilter;
 import shibboleth.model.Contribution;
 import shibboleth.model.GitGraph;
 import shibboleth.model.Repo;
-import shibboleth.model.SimpleRepo;
-import shibboleth.model.SimpleUser;
-import shibboleth.model.User;
+import shibboleth.util.GithubUtil;
 
 /**
- * Perform a DFS search of a given depth on a node.
+ * Perform a BFS search of a given depth on a node.
  * 
  * Syntax: <tt>explode [repo|user] [depth]</tt>.
  * 
@@ -26,10 +27,15 @@ public class ExplodeAction extends ShibbolethAction{
 	
 	private DataStore store;
 	private GitGraph graph;
+	private RepoFilter filter;
+	private boolean ensureAll;
 	
-	private List<SimpleUser> explodedUsers;
-	private List<SimpleRepo> explodedRepos;
+	private List<String> explodedUsers;
+	private List<String> explodedRepos;
 	private List<Contribution> explodedContributions;
+	private Map<String, Integer> nodeDepths;
+	
+	private Queue<String> bfsQueue;
 	
 	public ExplodeAction(DataStore store, GitGraph graph){
 		this.store=store;
@@ -38,9 +44,18 @@ public class ExplodeAction extends ShibbolethAction{
 	
 	@Override
 	public void execute(String[] args) {
-		if(args.length > 0){
+		if(args.length > 1){
+			explodedUsers = new ArrayList<String>();
+			explodedRepos = new ArrayList<String>();
+			explodedContributions = new ArrayList<Contribution>();
+			nodeDepths = new HashMap<String, Integer>();
+			bfsQueue = new LinkedList<String>();
+			ensureAll = false;
+			if(args.length==3 && "-a".equals(args[2]))
+				ensureAll=true;
+			
 			String argument = args[0];
-			RepoFilter filter = new JavaScriptFilter();
+			filter = new JavaScriptFilter();
 			
 			int depth = 0;
 			try{
@@ -50,32 +65,16 @@ public class ExplodeAction extends ShibbolethAction{
 				depth = 0;
 			}
 			
-			explodedUsers = new ArrayList<SimpleUser>();
-			explodedRepos = new ArrayList<SimpleRepo>();
-			explodedContributions = new ArrayList<Contribution>();
-			
-			boolean all = false;
-			if(args.length==3 && "-a".equals(args[2]))
-				all=true;
-			
-			
-			if(argument.indexOf('/')==-1) {
-				User user = store.getUser(argument);
-				explode(user, filter, all, depth);
-			}
-			else{
-				Repo repo = store.getRepo(argument);
-				explode(repo, filter, all, depth);
-			}
+			explode(argument,depth);
 			
 			if(args.length==3 && "-d".equals(args[2])){
-				for(SimpleUser u : explodedUsers){
-					store.deleteUser(u.login);
-					graph.remove(u.login);
+				for(String u : explodedUsers){
+					graph.remove(u);
+					store.deleteUser(u);
 				}
-				for(SimpleRepo r : explodedRepos){
-					store.deleteRepo(r.full_name);
-					graph.remove(r.full_name);
+				for(String r : explodedRepos){
+					graph.remove(r);
+					store.deleteRepo(r);
 				}
 			}
 			else{
@@ -90,7 +89,10 @@ public class ExplodeAction extends ShibbolethAction{
 			
 			explodedUsers.clear();
 			explodedRepos.clear();
-				
+			explodedContributions.clear();
+		}
+		else if(listener != null){
+			listener.messagePushed("Wrong syntax!");
 		}
 	}
 
@@ -99,41 +101,77 @@ public class ExplodeAction extends ShibbolethAction{
 		return "explode";
 	}
 	
-	public void explode(SimpleUser u, RepoFilter filter, boolean ensureAll, int depth){
-		if(u!=null && !explodedUsers.contains(u)){
-			if(depth>0) {
-				explodedUsers.add(u);
-				//System.out.println(depth + " " + u);
-				Repo[] reposByUser = store.getRepos(u.login, filter, ensureAll);
-				for(Contribution c : DataUtil.reposToContributions(reposByUser, u)){
-					explodedContributions.add(c);
-					explode(c.getRepo(), filter, ensureAll, depth-1);
+	
+	public void explode(String node, int depth){
+		bfsQueue.add(node);
+		nodeDepths.put(node, 0);
+		
+		while(!bfsQueue.isEmpty()){
+			String head = bfsQueue.poll();
+
+			if(!isVisited(head)){
+				visitNode(head);
+				int currentDepth = nodeDepths.get(head);
+				//System.out.println("Visit " + head + " at depth "+currentDepth);
+				
+				if(currentDepth<depth) {
+					for(String child : getChildren(head)){
+						//System.out.println("added " + child + " to queue");
+						nodeDepths.put(child, currentDepth+1);
+						bfsQueue.add(child);
+					}
 				}
 			}
-			else if(depth == 0){
-				explodedUsers.add(u);
-			}
+		}
+		
+		
+	}
+	
+	public void visitNode(String node){
+		if(GithubUtil.isUserName(node)){
+			explodedUsers.add(node);
+		}
+		else{
+			explodedRepos.add(node);
 		}
 	}
 	
-	public void explode(SimpleRepo r, RepoFilter filter, boolean ensureAll, int depth){
-		if(r!=null && !explodedRepos.contains(r)){
-			if(depth>0){
-				explodedRepos.add(r);
-				//System.out.println(depth + " " + r);
-				Contribution[] cs = store.getContributions(r.full_name, ensureAll);
-				for(Contribution c : cs) {
-					explodedContributions.add(c);
-					explode(c.getUser(), filter, ensureAll, depth-1);
-				}
-									
-			}
-			else if(depth == 0){
-				explodedRepos.add(r);
-			}
-		
+	public boolean isVisited(String node){
+		if(GithubUtil.isUserName(node)){
+			return explodedUsers.contains(node);
+		}
+		else{
+			return explodedRepos.contains(node);
 		}
 	}
+	
+	public String[] getChildren(String node){
+		if(GithubUtil.isUserName(node)){
+			Repo[] reposByUser = store.getRepos(node, filter, ensureAll);
+			Contribution[] cs = GithubUtil.reposToContributions(reposByUser, GithubUtil.createUser(node));
+			String[] res = new String[cs.length];
+			for(int i=0; i<cs.length; i++){
+				Contribution c = cs[i];
+				if(!explodedContributions.contains(c))
+					explodedContributions.add(c);
+				res[i] = c.getRepo().full_name;
+			}
+			return res;
+		}
+		else{
+			Contribution[] cs = store.getContributions(node, ensureAll);
+			String[] res = new String[cs.length];
+			for(int i=0; i<cs.length; i++){
+				Contribution c = cs[i];
+				if(!explodedContributions.contains(c))
+					explodedContributions.add(c);
+				res[i] = c.getUser().login;
+			}
+			return res;
+		}
+
+	}
+	
 	
 	
 }
