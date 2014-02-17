@@ -88,7 +88,7 @@ public class GetAction extends ShibbolethAction{
 					source.getUser(c.getUser().login);
 			}
 		}
-		else if(listener != null){
+		else {
 			listener.messagePushed("Wrong syntax");
 		}
 	}
@@ -98,8 +98,7 @@ public class GetAction extends ShibbolethAction{
 		for(Contribution c : cs)
 			graph.addContribution(c);
 		
-		if(listener != null)
-			listener.graphChanged("Added all contributions.", false);
+		listener.graphChanged("Added all contributions.", false);
 	}
 	
 	public void requestContributions(SimpleUser u, RepoFilter filter, boolean ensureAll){
@@ -110,8 +109,7 @@ public class GetAction extends ShibbolethAction{
 				graph.addContribution(c);
 			}
 			
-			if(listener != null)
-				listener.graphChanged("Added " + rs.length +" contributions of "+u.login, false);
+			listener.graphChanged("Added " + rs.length +" contributions of "+u.login, false);
 			
 		}
 		else{
@@ -132,18 +130,14 @@ public class GetAction extends ShibbolethAction{
 			for(Contribution c : cs)
 				graph.addContribution(c);
 			
-			if(listener != null)
-				listener.graphChanged("Added " + cs.length +" contributions for "+r.full_name, false);
+			listener.graphChanged("Added " + cs.length +" contributions for "+r.full_name, false);
 			
 		}
 		else{
 			try {
 				throw new Exception("Repo not found!");
 			} catch (Exception e) {
-				if(listener != null)
-					listener.errorOccurred(e, false);
-				else
-					System.out.println(e.getMessage());
+				listener.errorOccurred(e, false);
 			}
 		}
 	}
@@ -152,17 +146,13 @@ public class GetAction extends ShibbolethAction{
 		User u = source.getUser(userName);
 		if(u != null){
 			graph.add(u);
-			if(listener != null)
-				listener.graphChanged("Added user "+userName, false);
+			listener.graphChanged("Added user "+userName, false);
 		}
 		else{
 			try {
 				throw new Exception("User not found!");
 			} catch (Exception e) {
-				if(listener != null)
-					listener.errorOccurred(e, false);
-				else
-					System.out.println(e.getMessage());
+				listener.errorOccurred(e, false);
 			}
 		}
 	}
@@ -172,17 +162,13 @@ public class GetAction extends ShibbolethAction{
 		
 		if(r != null){
 			graph.add(r);
-			if(listener != null)
-				listener.graphChanged("Added repo "+repoName, false);
+			listener.graphChanged("Added repo "+repoName, false);
 		}
 		else{
 			try {
 				throw new Exception("Repo not found!");
 			} catch (Exception e) {
-				if(listener != null)
-					listener.errorOccurred(e, false);
-				else
-					System.out.println(e.getMessage());
+				listener.errorOccurred(e, false);
 			}
 		}
 	}

@@ -18,8 +18,7 @@ public class ExportAction extends ShibbolethAction {
 			File path = new File(args[0]);
 			graph.export(path);
 			
-			if(listener!=null)
-				listener.messagePushed("Saved graph at " + path.getAbsolutePath());
+			listener.messagePushed("Saved graph at " + path.getAbsolutePath());
 		}
 	}
 	

@@ -21,14 +21,13 @@ public class HideAction extends ShibbolethAction {
 	public void execute(String[] args) {
 		if(args.length == 1 && args[0].equals("-all")){
 			graph.removeAll();
-			if(listener != null)
-				listener.graphChanged("Removed all nodes", false);
+			listener.graphChanged("Removed all nodes", false);
 		}
 		else if(args.length == 1){
 			boolean res = graph.remove(args[0]);
 			if(!res && listener!=null)
 				listener.messagePushed("No node named"+args[0]+ " found.");
-			else if(res && listener!=null)
+			else if(res)
 				listener.graphChanged("Node "+args[0]+ " removed." , false);
 			
 		}

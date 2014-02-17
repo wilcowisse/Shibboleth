@@ -1,6 +1,7 @@
 package shibboleth.model;
 
 
+import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -29,6 +30,8 @@ import org.gephi.ranking.api.RankingController;
 import org.gephi.ranking.api.Transformer;
 import org.gephi.ranking.plugin.transformer.AbstractSizeTransformer;
 import org.openide.util.Lookup;
+
+import shibboleth.util.GithubUtil;
 
 /**
  * A (bipartite) directed graph containing users and repos and their relationship.
@@ -122,8 +125,7 @@ public class GitGraph {
 		Node userNode = directedGraph.getNode(user.login);
 		if(userNode == null){
 			userNode = graphModel.factory().newNode(user.login);
-			
-			userNode.getNodeData().setColor(84f/255f, 235f/255f, 122f/255f);
+			setColor(userNode, new Color(84, 235, 122));
 			userNode.getNodeData().setLabel(user.login);
 			userNode.getNodeData().getAttributes().setValue(typeCol.getIndex(), "user");
 			userNode.getNodeData().setSize(NODE_SIZE_MIN);
@@ -140,14 +142,10 @@ public class GitGraph {
 	 * @return The Node belonging to the repo.
 	 */
 	public Node add(SimpleRepo repo){
-		return add(repo, false);
-	}
-	
-	public Node add(SimpleRepo repo, boolean hasContributionInfo){
 		Node repoNode = directedGraph.getNode(repo.full_name);
 		if(repoNode == null){
 			repoNode = graphModel.factory().newNode(repo.full_name);
-			repoNode.getNodeData().setColor(164f/255f, 215f/255f, 235f/255f);
+			setColor(repoNode, new Color(164,215,235));
 			repoNode.getNodeData().setLabel(repo.full_name);
 			repoNode.getNodeData().getAttributes().setValue(typeCol.getIndex(), "repo");
 			repoNode.getNodeData().setSize(NODE_SIZE_MIN);
@@ -155,6 +153,32 @@ public class GitGraph {
 			directedGraph.addNode(repoNode);
 		}
 		return repoNode;
+	}
+	
+	/**
+	 * Set color to a node. If color is null, standard 
+	 * colors are being applied.
+	 * @param nodeName The name of the node
+	 * @param color The color
+	 */
+	public void setColor(String nodeName, Color color){
+		if(color==null && GithubUtil.isRepoName(nodeName))
+			color = new Color(164,215,235);
+		else if(color==null && GithubUtil.isUserName(nodeName))
+			color = new Color(84, 235, 122);
+		
+		Node node = directedGraph.getNode(nodeName);
+		if(node!=null)
+			setColor(node, color);
+	}
+	
+	/**
+	 * Set color to a node
+	 * @param node The node
+	 * @param color The color
+	 */
+	public void setColor(Node node, Color color){
+		node.getNodeData().setColor(color.getRed()/255f,color.getGreen()/255f,color.getBlue()/255f);
 	}
 	
 	/**
@@ -215,7 +239,7 @@ public class GitGraph {
 		}
 		
 		if(c.hasContributionInfo()){
-			repoNode.getNodeData().setColor(84f/255f, 192f/255f, 235f/255f);
+			setColor(repoNode, new Color(84, 192, 235));
 			float percentage = ((float)c.getContributionInfo().percentage)/100f;
 			float weight = EDGE_SIZE_MIN + (EDGE_SIZE_MAX - EDGE_SIZE_MIN) * percentage;
 			edge.setWeight(weight);

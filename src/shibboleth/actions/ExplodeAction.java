@@ -83,15 +83,13 @@ public class ExplodeAction extends ShibbolethAction{
 				}
 			}
 			
-			if(listener != null){
-				listener.graphChanged("Exploded "+ explodedUsers.size() + " users and " +  explodedRepos.size() + " repos", false);
-			}
+			listener.graphChanged("Exploded "+ explodedUsers.size() + " users and " +  explodedRepos.size() + " repos", false);
 			
 			explodedUsers.clear();
 			explodedRepos.clear();
 			explodedContributions.clear();
 		}
-		else if(listener != null){
+		else {
 			listener.messagePushed("Wrong syntax!");
 		}
 	}

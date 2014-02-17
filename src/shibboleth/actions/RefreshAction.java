@@ -12,8 +12,7 @@ public class RefreshAction extends ShibbolethAction {
 
 	@Override
 	public void execute(String[] args) {
-		if(listener!=null)
-			listener.graphChanged("Refresh", false);
+		listener.graphChanged("Refresh", false);
 	}
 
 	@Override

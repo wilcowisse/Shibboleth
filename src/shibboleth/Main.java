@@ -130,71 +130,71 @@ public abstract class Main{
 	public void initActions(ActionListener listener, ActionExecutor executor){
 		
 		ExeAction exeAction = new ExeAction(rate);
-		exeAction.setActionListener(listener);
+		exeAction.addActionListener(listener);
 		executor.addAction(exeAction);
 		
 		new ToggleLabelAction()
-			.setActionListener(listener)
+			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
 		new GraphLayoutAction(graph)
-			.setActionListener(listener)
+			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
 		new GetInfoAction(mysqlCachedReadOnly)
-			.setActionListener(listener)
+			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 
 		new RateAction(rate)
-			.setActionListener(listener)
+			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
 		new GetAction(mysqlOnTopOfGithub, graph)
-			.setActionListener(listener)
+			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
 		new HideAction(graph)
-			.setActionListener(listener)
+			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
 		new DeleteAction(graph, mysql)
-			.setActionListener(listener)
+			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
 		new RefreshAction()
-			.setActionListener(listener)
+			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
 		new TokenAction(github)
-			.setActionListener(listener)
+			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
 		new CloneAction(mysqlOnTopOfGithub, infoStore)
-			.setActionListener(listener)
+			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
 		new ExplodeAction(mysqlStoreOnTopOfGithub, graph)
-			.setActionListener(listener)
+			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
 		new ExportAction(graph)
-			.setActionListener(listener)
+			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
 		new HelpAction()
-			.setActionListener(listener)
+			.addActionListener(listener)
 			.addExecutor(executor);
 	}
 		
@@ -204,6 +204,19 @@ public abstract class Main{
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public static void main(String[] args){
+		if(args.length == 0){
+			new GuiMain();
+		}
+		else if(args.length>0 && args[0].equals("-cli")){
+			new CliMain();
+		}
+		else{
+			System.out.println("Usage: java -jar Shibboleth.jar [-cli]");
+		}
+		
 	}
 	
 	

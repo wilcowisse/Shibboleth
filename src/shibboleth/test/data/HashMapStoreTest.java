@@ -1,7 +1,7 @@
 package shibboleth.test.data;
 
 import static org.junit.Assert.*;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -121,7 +121,9 @@ public class HashMapStoreTest {
 		store.storeRepo(keesR1);
 		store.storeRepo(keesR2);
 		
+		
 		List<Repo> repos = Arrays.asList(store.getRepos("kees", new TransparantFilter(), false));
+		
 		assertThat(repos, hasItem(keesR1));
 		assertThat(repos, hasItem(keesR2));
 		

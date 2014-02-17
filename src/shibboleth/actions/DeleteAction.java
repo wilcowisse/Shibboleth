@@ -32,9 +32,8 @@ public class DeleteAction extends ShibbolethAction{
 			else{
 				store.deleteRepo(argument);
 			}	
-			if(listener!=null){
-				listener.graphChanged(String.format("Deleted %s:",argument), false);
-			}
+			
+			listener.graphChanged(String.format("Deleted %s:",argument), false);
 			
 		}
 		else{

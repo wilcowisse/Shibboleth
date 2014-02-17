@@ -45,4 +45,12 @@ public class GithubUtil {
 		return res;
 	}
 	
+	public static SimpleUser[] contributionsToUsers(Contribution[] cs){
+		SimpleUser[] res = new SimpleUser[cs.length];
+		for(int i=0;i<res.length;i++){
+			res[i]=cs[i].getUser();
+		}
+		return res;
+	}
+	
 }

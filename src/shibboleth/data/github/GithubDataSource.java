@@ -177,15 +177,14 @@ public class GithubDataSource implements DataSource{
 			Repo[] repos = null;
 			try {
 				repos = doRequest(url, Repo[].class);
-				
-				//TODO: implement pagination!
-				if(repos.length == 100){
-					System.err.println("WARNING: full page returned in getRepos for user "+user);
-				}
 			}catch(HttpResponseException e){
 				System.out.println(e.getMessage());
 			}catch (IOException e) {
 				e.printStackTrace();
+			}
+			
+			if(repos == null){
+				return new Repo[]{};	
 			}
 			
 			List<Repo> repoList = new ArrayList<Repo>();
@@ -209,15 +208,21 @@ public class GithubDataSource implements DataSource{
 		try {
 			rContributions = doRequest(url, RESTContribution[].class);
 			
-			//TODO: implement pagination!
-			if(rContributions.length == 100){
-				System.err.println("WARNING: full page returned in getContributions for repo "+fullRepoName);
-			}
+			
 			
 		}catch(HttpResponseException e){
 			System.out.println(e.getMessage());
 		}catch (IOException e) {
 			e.printStackTrace();
+		}
+		
+		if(rContributions==null){
+			return new Contribution[]{};
+		}
+		
+		//TODO: implement pagination!
+		if(rContributions.length == 100){
+			System.err.println("WARNING: full page returned in getContributions for repo "+fullRepoName);
 		}
 		
 		int totalContributionCount = 0;

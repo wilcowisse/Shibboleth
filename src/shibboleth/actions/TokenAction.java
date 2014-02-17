@@ -23,11 +23,9 @@ public class TokenAction extends ShibbolethAction {
 	public void execute(String[] args) {
 		if(args.length == 1){
 			github.setAccessToken(args[0]);
-			if(listener != null){
-				listener.messagePushed("Set Github access token: "+args[0]);
-			}
+			listener.messagePushed("Set Github access token: "+args[0]);
 		}
-		else if(listener != null){
+		else {
 			listener.messagePushed("Wrong syntax");
 		}
 		

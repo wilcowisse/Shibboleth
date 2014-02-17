@@ -68,7 +68,7 @@ public class GetInfoAction extends ShibbolethAction{
 				requestRepoExpand(argument, true);
 			}
 		}
-		else if(listener != null){
+		else {
 			listener.messagePushed("Wrong syntax");
 		}
 	}
@@ -86,10 +86,7 @@ public class GetInfoAction extends ShibbolethAction{
 			try {
 				throw new Exception("User not found!");
 			} catch (Exception e) {
-				if(listener != null)
-					listener.errorOccurred(e, false);
-				else
-					System.out.println(e.getMessage());
+				listener.errorOccurred(e, false);
 			}
 		}
 	}
@@ -101,17 +98,13 @@ public class GetInfoAction extends ShibbolethAction{
 			String message = "Repo info";
 			String[] info = r.getInfoArray();
 			
-			if(listener != null)
-				listener.messagePushed(message, info);
+			listener.messagePushed(message, info);
 		}
 		else{
 			try {
 				throw new Exception("Repo not found!");
 			} catch (Exception e) {
-				if(listener != null)
-					listener.errorOccurred(e, false);
-				else
-					System.out.println(e.getMessage());
+				listener.errorOccurred(e, false);
 			}
 		}
 	}
@@ -121,17 +114,13 @@ public class GetInfoAction extends ShibbolethAction{
 		
 		if(reposByUser!=null){
 			String message = "Repos "+userName+" contributed to:";
-			if(listener != null)
-				listener.messagePushed(message, reposByUser);
+			listener.messagePushed(message, reposByUser);
 		}
 		else{
 			try {
 				throw new Exception("User not found!");
 			} catch (Exception e) {
-				if(listener != null)
-					listener.errorOccurred(e, false);
-				else
-					System.out.println(e.getMessage());
+				listener.errorOccurred(e, false);
 			}
 		}		
 	}
@@ -148,10 +137,7 @@ public class GetInfoAction extends ShibbolethAction{
 			try {
 				throw new Exception("Repo not found!");
 			} catch (Exception e) {
-				if(listener != null)
-					listener.errorOccurred(e, false);
-				else
-					System.out.println(e.getMessage());
+				listener.errorOccurred(e, false);
 			}
 		}
 	}

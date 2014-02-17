@@ -10,14 +10,15 @@ import shibboleth.gui.ActionListener;
  */
 public abstract class ShibbolethAction {
 	
-	protected ActionListener listener;
-
+	protected final NotifierActionListener listener = new NotifierActionListener();
+	
 	/**
 	 * Set a listener for this action.
 	 * @param listener
+	 * @return this
 	 */
-	public ShibbolethAction setActionListener(ActionListener listener){
-		this.listener = listener;
+	public ShibbolethAction addActionListener(ActionListener l){
+		listener.addActionListener(l);
 		return this;
 	}
 	

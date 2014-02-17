@@ -35,8 +35,8 @@ public class CloneAction extends ShibbolethAction{
 	@Override
 	public void execute(String[] args) {
 		if(args.length == 1){
-			if(listener != null)
-				listener.busyStateChanged(true);
+
+			listener.busyStateChanged(true);
 			
 			Repo repo = source.getRepo(args[0]);
 			
@@ -60,10 +60,9 @@ public class CloneAction extends ShibbolethAction{
 				}
 			}
 			
-			if(listener != null){
-				listener.busyStateChanged(false);
-				listener.messagePushed("Cloned repo " + repo.full_name);
-			}
+			listener.busyStateChanged(false);
+			listener.messagePushed("Cloned repo " + repo.full_name);
+			
 		}
 		
 	}

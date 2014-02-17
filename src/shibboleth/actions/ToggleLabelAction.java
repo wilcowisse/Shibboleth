@@ -24,11 +24,10 @@ public class ToggleLabelAction extends ShibbolethAction {
 			PreviewController previewController = Lookup.getDefault().lookup(PreviewController.class);
 			PreviewModel previewModel = previewController.getModel();
 			previewModel.getProperties().putValue(PreviewProperty.SHOW_NODE_LABELS, new Boolean(isShowing));
-			if(listener != null)
-				listener.graphChanged("Toggled labels", false);
+			listener.graphChanged("Toggled labels", false);
 		}
-		else if(listener != null){
-				listener.messagePushed("Wrong syntax");
+		else {
+			listener.messagePushed("Wrong syntax");
 		}
 	}
 
