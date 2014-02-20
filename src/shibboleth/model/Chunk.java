@@ -1,6 +1,7 @@
 package shibboleth.model;
 
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * A chunk is a contiguous piece of a {@link GitFile} with authorship information.
@@ -45,6 +46,11 @@ public class Chunk {
 				&& (start     == ((Chunk)other).start)
 				&& (end       == ((Chunk)other).end)
 				: false;
+	}
+	
+	@Override
+	public int hashCode(){
+		return Objects.hash(file, committer,when, start, end);
 	}
 	
 	@Override

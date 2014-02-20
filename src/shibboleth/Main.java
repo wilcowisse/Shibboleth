@@ -3,6 +3,7 @@ package shibboleth;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+
 import shibboleth.actions.ActionExecutor;
 import shibboleth.actions.CloneAction;
 import shibboleth.actions.DeleteAction;
@@ -10,12 +11,13 @@ import shibboleth.actions.ExeAction;
 import shibboleth.actions.ExplodeAction;
 import shibboleth.actions.ExportAction;
 import shibboleth.actions.GetAction;
-import shibboleth.actions.GraphLayoutAction;
 import shibboleth.actions.GetInfoAction;
 import shibboleth.actions.HelpAction;
 import shibboleth.actions.HideAction;
+import shibboleth.actions.HighlightAction;
 import shibboleth.actions.RateAction;
 import shibboleth.actions.RefreshAction;
+import shibboleth.actions.ShibbolethAction;
 import shibboleth.actions.ToggleLabelAction;
 import shibboleth.actions.TokenAction;
 import shibboleth.data.CachedSource;
@@ -30,7 +32,7 @@ import shibboleth.data.sql.CommitInfoStore;
 import shibboleth.data.sql.SqlDataStore;
 import shibboleth.data.sql.Statements;
 import shibboleth.gui.ActionListener;
-import shibboleth.model.GitGraph;
+import shibboleth.model.GithubGraph;
 
 /**
  * Controller of the application.
@@ -40,28 +42,19 @@ import shibboleth.model.GitGraph;
  */
 public abstract class Main{
 	
-	private GitGraph graph;
-	private RateLimitValue rate;
-	private Connection connection;
-	private GithubDataSource github;
-	private DataSource githubCached,mysqlOnTopOfGithub, mysqlCachedReadOnly;
-	private DataStore mysql,hashCache, mysqlStoreOnTopOfGithub;
-	private CommitInfoStore infoStore;
+	protected GithubGraph graph;
+	protected RateLimitValue rate;
+	protected Connection connection;
+	protected GithubDataSource github;
+	protected SqlDataStore mysql;
+	protected DataSource githubCached,mysqlOnTopOfGithub, mysqlCachedReadOnly;
+	protected DataStore hashCache, mysqlStoreOnTopOfGithub;
+	protected CommitInfoStore infoStore;
+	private ExeAction exeAction;
 	
-	
-	public Main(){
-		initApp();
-	}
-	
-	public void initApp(){
-		// connection = getMySqlConnection("root", "pass");
-		// OR:
-		initApp(createSqliteConnection("db/db.sqlite"));
-	}
-	
-	public void initApp(Connection connection){
+	public void initApp(Connection connection, GithubGraph graph){
 		this.connection = connection;
-		graph = new GitGraph();
+		this.graph = graph;
 		initIO();
 		
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -124,21 +117,18 @@ public abstract class Main{
 		
 		// Datasource: Mysql on top of Github (readonly on db)
 		mysqlCachedReadOnly = new ReadOnlyCachedSource(mysql, githubCached);
+		
+		
 				
 	}
 	
 	public void initActions(ActionListener listener, ActionExecutor executor){
 		
-		ExeAction exeAction = new ExeAction(rate);
+		exeAction = new ExeAction(rate);
 		exeAction.addActionListener(listener);
 		executor.addAction(exeAction);
 		
 		new ToggleLabelAction()
-			.addActionListener(listener)
-			.addExecutor(executor)
-			.addExecutor(exeAction);
-		
-		new GraphLayoutAction(graph)
 			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
@@ -183,7 +173,7 @@ public abstract class Main{
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
-		new ExplodeAction(mysqlStoreOnTopOfGithub, graph)
+		new ExplodeAction(mysqlOnTopOfGithub, graph)
 			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
@@ -193,9 +183,18 @@ public abstract class Main{
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
+		new HighlightAction(graph, mysql)
+			.addActionListener(listener)
+			.addExecutor(executor)
+			.addExecutor(exeAction);
+		
 		new HelpAction()
 			.addActionListener(listener)
 			.addExecutor(executor);
+	}
+	
+	public void addToExeAction(ShibbolethAction action){
+		exeAction.addAction(action);
 	}
 		
 	public void close(){
@@ -212,6 +211,9 @@ public abstract class Main{
 		}
 		else if(args.length>0 && args[0].equals("-cli")){
 			new CliMain();
+		}
+		else if(args.length>0 && args[0].equals("-crawl")){
+			new CrawlMain();
 		}
 		else{
 			System.out.println("Usage: java -jar Shibboleth.jar [-cli]");

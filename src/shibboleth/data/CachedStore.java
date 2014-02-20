@@ -49,8 +49,8 @@ public class CachedStore extends CachedSource implements DataStore{
 	}
 
 	@Override
-	public void storeContributions(Contribution[] cs) {
-		store.storeContributions(cs);
+	public void storeNewContributions(Contribution[] cs) {
+		store.storeNewContributions(cs);
 	}
 
 	@Override

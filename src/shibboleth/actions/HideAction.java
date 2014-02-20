@@ -1,6 +1,6 @@
 package shibboleth.actions;
 
-import shibboleth.model.GitGraph;
+import shibboleth.model.GithubGraph;
 
 /**
  * Hide node, i.e. remove from graph. But do not remove from database.
@@ -12,11 +12,12 @@ import shibboleth.model.GitGraph;
  */
 public class HideAction extends ShibbolethAction {
 	
-	private GitGraph graph;
+	private GithubGraph graph;
 	
-	public HideAction(GitGraph graph){
+	public HideAction(GithubGraph graph){
 		this.graph=graph;
 	}
+	
 	@Override
 	public void execute(String[] args) {
 		if(args.length == 1 && args[0].equals("-all")){

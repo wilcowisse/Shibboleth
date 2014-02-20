@@ -1,7 +1,7 @@
 package shibboleth.actions;
 
 import shibboleth.data.DataStore;
-import shibboleth.model.GitGraph;
+import shibboleth.model.GithubGraph;
 
 /**
  * Delete a repo or a user from the graph AND the given datastore.
@@ -12,10 +12,11 @@ import shibboleth.model.GitGraph;
  *
  */
 public class DeleteAction extends ShibbolethAction{
-	private GitGraph graph;
+	
+	private GithubGraph graph;
 	private DataStore store;
 	
-	public DeleteAction(GitGraph graph, DataStore store){
+	public DeleteAction(GithubGraph graph, DataStore store){
 		this.graph=graph;
 		this.store=store;
 	}

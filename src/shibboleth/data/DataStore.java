@@ -13,13 +13,13 @@ import shibboleth.model.User;
 public interface DataStore extends DataSource{
 	
 	/**
-	 * Store a repo.
+	 * Store a repo, if repo has not been stored.
 	 * @param repo The repo to be stored, should not be <tt>null</tt>.
 	 */
 	public void storeRepo(Repo repo);
 	
 	/**
-	 * Store a user.
+	 * Store a user, if user has not been stored.
 	 * @param user The user to be stored, should not be <tt>null</tt>.
 	 */
 	public void storeUser(User user);
@@ -31,10 +31,11 @@ public interface DataStore extends DataSource{
 	public void storeContribution(Contribution c);
 	
 	/**
-	 * Store multiple contributions
+	 * Store multiple contributions. Stores only those contributions which 
+	 * do not exist in this store.
 	 * @param cs an array with contributions to be stored.
 	 */
-	public void storeContributions(Contribution[] cs);
+	public void storeNewContributions(Contribution[] cs);
 	
 	/**
 	 * Remove all repos with the given repo name.

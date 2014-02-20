@@ -3,17 +3,19 @@ package shibboleth.actions;
 import java.awt.Color;
 
 import shibboleth.data.DataSource;
+import shibboleth.data.TransparantFilter;
 import shibboleth.model.Contribution;
-import shibboleth.model.GitGraph;
+import shibboleth.model.GithubGraph;
+import shibboleth.model.Repo;
 import shibboleth.model.SimpleUser;
 import shibboleth.util.GithubUtil;
 
 public class HighlightAction extends ShibbolethAction {
 
-	private GitGraph graph;
+	private GithubGraph graph;
 	private DataSource source;
 
-	public HighlightAction(GitGraph graph, DataSource source){
+	public HighlightAction(GithubGraph graph, DataSource source){
 		this.graph = graph;
 		this.source = source;
 	}
@@ -23,9 +25,11 @@ public class HighlightAction extends ShibbolethAction {
 		if(args.length==1){
 			String node = args[0];
 			graph.setColor(node, Color.YELLOW);
+			listener.graphChanged("Highlight", false);
 		}
-		if(args.length==2 && args[0].equals("c")){
+		else if(args.length==2 && args[0].equals("c")){
 			String node = args[1];
+
 			if(GithubUtil.isRepoName(node)){
 				Contribution[] cs = source.getContributions(node, false);
 				for(SimpleUser user : GithubUtil.contributionsToUsers(cs)){
@@ -33,11 +37,17 @@ public class HighlightAction extends ShibbolethAction {
 				}
 			}
 			else{
-				listener.messagePushed("Wrong syntax");
+				Repo[] rs = source.getRepos(node, new TransparantFilter(), false);
+				for(Repo r : rs){
+					graph.setColor(r.full_name, Color.YELLOW);
+				}
 			}
+			listener.graphChanged("Highlight", false);
 			
 		}
-
+		else{
+			listener.messagePushed("Wrong syntax");
+		}
 	}
 
 	@Override

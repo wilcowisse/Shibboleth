@@ -2,8 +2,8 @@ package shibboleth.data;
 
 import shibboleth.model.Contribution;
 import shibboleth.model.Repo;
-import shibboleth.model.SimpleUser;
 import shibboleth.model.User;
+import shibboleth.util.GithubUtil;
 
 /**
  * A CachedSource can be used to 'chain' a <tt>DataStore</tt> on top of a
@@ -54,14 +54,13 @@ public class CachedSource implements DataSource {
 		return r;
 	}
 	
-	
 	@Override
 	public Contribution[] getContributions(String reponame, boolean ensureAll){
 		Contribution[] cs = cache.getContributions(reponame, ensureAll);
 		if(cs == null){ // cache miss
 			cs = source.getContributions(reponame, ensureAll);
 			if(cs != null){
-				cache.storeContributions(cs);
+				cache.storeNewContributions(cs);
 				if(ensureAll)
 					cache.storedAllContributionsForRepo(reponame, true);
 			}
@@ -75,9 +74,10 @@ public class CachedSource implements DataSource {
 		if(rs == null){ // cache miss
 			rs = source.getRepos(username, filter, ensureAll);
 			if(rs != null) {
+				Contribution[] cs = GithubUtil.reposToContributions(rs, GithubUtil.createUser(username));
+				cache.storeNewContributions(cs);
+				
 				for(Repo r : rs){
-					Contribution c = new Contribution(new SimpleUser(username), r);
-					cache.storeContribution(c);
 					cache.storeRepo(r);
 				}
 				if(ensureAll)
@@ -87,25 +87,25 @@ public class CachedSource implements DataSource {
 		return rs;
 	}
 
-	@Override
-	public boolean containsUser(String userName) {
-		return cache.containsUser(userName);
-	}
-
-	@Override
-	public boolean containsRepo(String repoName) {
-		return cache.containsRepo(repoName);
-	}
-
-	@Override
-	public boolean containsContribution(String repo, String user) {
-		return cache.containsContribution(repo, user);
-	}
-
-	@Override
-	public boolean containsContributionInfo(String repo, String user) {
-		return cache.containsContributionInfo(repo, user);
-	}
+//	@Override
+//	public boolean containsUser(String userName) {
+//		return cache.containsUser(userName);
+//	}
+//
+//	@Override
+//	public boolean containsRepo(String repoName) {
+//		return cache.containsRepo(repoName);
+//	}
+//
+//	@Override
+//	public boolean containsContribution(String repo, String user) {
+//		return cache.containsContribution(repo, user);
+//	}
+//
+//	@Override
+//	public boolean containsContributionInfo(String repo, String user) {
+//		return cache.containsContributionInfo(repo, user);
+//	}
 
 	/**
 	 * @return All contributions in the cache. Not all contribution in the source!

@@ -1,6 +1,11 @@
 package shibboleth.gui;
 
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Insets;
+import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
@@ -45,6 +50,27 @@ public class CommandField extends JTextField implements ActionExecutor, KeyListe
 		
 		this.addKeyListener(this);
 		setDisabledTextColor(Color.GRAY);
+		
+		Insets insets = getInsets();
+		insets.left=17;
+		setMargin(insets);
+	}
+	
+	
+	@Override
+	public void paint(Graphics g){
+		super.paint(g);
+		
+		Graphics2D g2 = (Graphics2D) g;
+		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		
+		Font font = new Font("Monospaced", Font.BOLD, 12);
+		g2.setFont(font);
+		int fontHeight = g2.getFontMetrics().getHeight();
+		int y = getHeight()/2 +fontHeight/2-3;
+		
+		g2.drawString("$", 10, y);
+		
 	}
 	
 	private void previousAction(){

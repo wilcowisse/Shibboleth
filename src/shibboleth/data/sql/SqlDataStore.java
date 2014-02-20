@@ -31,7 +31,7 @@ public class SqlDataStore implements DataStore{
 	
 	private PreparedStatement selectRepoSt, selectUserSt, selectReposByUserSt, selectContributionsSt, selectSingleContributionSt, selectAllContributionsSt;
 	private PreparedStatement insertRepoSt, insertUserSt, insertContributionSt, insertContributionInfoSt;
-	private PreparedStatement countReposSt, countUsersSt, countContributionsSt, countContributionsInfoSt;
+	private PreparedStatement countContributionsSt, countContributionsInfoSt;
 	private PreparedStatement deleteRepoSt, deleteUserSt, deleteContributionByRepoSt, deleteContributionByUserSt, deleteContributionInfoByRepoSt, deleteContributionInfoByUserSt;
 	
 	private PreparedStatement insertStoredLinksSt, deleteStoredLinksSt, selectStoredLinksSt;
@@ -46,14 +46,12 @@ public class SqlDataStore implements DataStore{
 			
 			selectRepoSt 				= connection.prepareStatement(Statements.selectRepo);
 			insertRepoSt 				= connection.prepareStatement(Statements.insertRepo);
-			countReposSt				= connection.prepareStatement(Statements.countRepos);
 			deleteRepoSt				= connection.prepareStatement(Statements.deleteRepo);
 			selectReposByUserSt 		= connection.prepareStatement(Statements.selectReposByUser);
 			
 			selectUserSt 				= connection.prepareStatement(Statements.selectUser);
 			insertUserSt 				= connection.prepareStatement(Statements.insertUser);
 			deleteUserSt				= connection.prepareStatement(Statements.deleteUser);
-			countUsersSt				= connection.prepareStatement(Statements.countUsers);
 			
 			selectAllContributionsSt	= connection.prepareStatement(Statements.selectAllContributions);
 			selectContributionsSt 		= connection.prepareStatement(Statements.selectContributions);
@@ -69,7 +67,6 @@ public class SqlDataStore implements DataStore{
 			
 			insertContributionInfoSt 	= connection.prepareStatement(Statements.insertContributionInfo);
 			countContributionsInfoSt	= connection.prepareStatement(Statements.countContributionsInfo);
-			insertContributionInfoSt 	= connection.prepareStatement(Statements.insertContributionInfo);
 			
 			insertStoredLinksSt			= connection.prepareStatement(Statements.insertStoredLinks);
 			deleteStoredLinksSt			= connection.prepareStatement(Statements.deleteStoredLinks);
@@ -189,7 +186,6 @@ public class SqlDataStore implements DataStore{
 		return getContributions(selectAllContributionsSt);
 	}
 	
-	
 	private Contribution[] getContributions(PreparedStatement statement) {
 		Contribution[] result = null;
 		try {
@@ -220,13 +216,6 @@ public class SqlDataStore implements DataStore{
 	}
 	
 	@Override
-	public void storeContributions(Contribution[] cs) {
-		for(Contribution c : cs){
-			storeContribution(c);
-		}
-	}
-
-	@Override
 	public void storeRepo(Repo repo) {
 		try {
 			String p= repo.parent==null ? "" : repo.parent.full_name;
@@ -252,7 +241,6 @@ public class SqlDataStore implements DataStore{
 	
 	@Override
 	public void storeUser(User user) {
-		
 		try {
 			String n= user.name==null ? "":user.name;
 	    	String e= user.email==null ? "":user.email;
@@ -276,11 +264,49 @@ public class SqlDataStore implements DataStore{
 	}
 	
 	@Override
-	public void storeContribution(Contribution c) {	
+	public void storeContribution(Contribution c) {
+		int key = storeContributionWithoutInfo(c);
+		if(key != -1 && c.hasContributionInfo()){
+			storeContributionInfo(key, c.getContributionInfo());
+		}
+	}
+	
+	/**
+	 * Store the contribution, but does not store its ContributionInfo
+	 * @param c The contribution
+	 * @return The database its primary key value of this contribution
+	 */
+	public int storeContributionWithoutInfo(Contribution c){
 		String repoName=c.getRepo().full_name;
 		String userName=c.getUser().login;
-		if(containsContribution(repoName, userName)){
-			if(c.hasContributionInfo()){
+		int key = -1;
+		
+		try {
+			insertContributionSt.setString(1, repoName);
+			insertContributionSt.setString(2, userName);
+			insertContributionSt.executeUpdate();
+			
+			ResultSet generatedKeys = insertContributionSt.getGeneratedKeys();
+			if(generatedKeys.next()){
+				key = generatedKeys.getInt(1);
+			}
+			else{
+				throw new SQLException("Creating contribution failed, no generated key obtained.");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return key;
+	}
+	
+	@Override
+	public void storeNewContributions(Contribution[] cs) {
+		for(Contribution c : cs){
+			String repoName = c.getRepo().full_name;
+			String userName = c.getUser().login;
+			boolean containsContribution = containsContribution(repoName, userName);
+			
+			if(c.hasContributionInfo() && containsContribution){
 				try {
 					selectSingleContributionSt.setString(1, repoName);
 					selectSingleContributionSt.setString(2, userName);
@@ -292,31 +318,13 @@ public class SqlDataStore implements DataStore{
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
+				
 			}
-		}
-		else{
-			try {
-				insertContributionSt.setString(1, c.getRepo().full_name);
-				insertContributionSt.setString(2, c.getUser().login);
-				insertContributionSt.executeUpdate();
-				
-				int key = -1;
-				ResultSet generatedKeys = insertContributionSt.getGeneratedKeys();
-				if(generatedKeys.next()){
-					key = generatedKeys.getInt(1);
-				}
-				else{
-					throw new SQLException("Creating contribution failed, no generated key obtained.");
-				}
-				
-				if(c.hasContributionInfo())
-					storeContributionInfo(key, c.getContributionInfo());
-				
-			} catch (SQLException e) {
-				e.printStackTrace();
+			else if(!containsContribution){
+				storeContribution(c);
 			}
+			//else: nothing to store
 		}
-		
 	}
 	
 	/**
@@ -335,29 +343,38 @@ public class SqlDataStore implements DataStore{
 		}
 	}
 
-	@Override
-	public boolean containsUser(String userName) {
-		try {
-			countUsersSt.setString(1, userName);
-			return resultCount(countUsersSt)>0;
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return false;
-	}
-
-	@Override
-	public boolean containsRepo(String repoName) {
-		try {
-			countReposSt.setString(1, repoName);
-			return resultCount(countReposSt)>0;
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return false;
-	}
-
-	@Override
+//	@Override
+//	public boolean containsUser(String userName) {
+//		try {
+//			countUsersSt.setString(1, userName);
+//			return resultCount(countUsersSt)>0;
+//		} catch (SQLException e) {
+//			e.printStackTrace();
+//		}
+//		return false;
+//	}
+//
+//	@Override
+//	public boolean containsRepo(String repoName) {
+//		try {
+//			countReposSt.setString(1, repoName);
+//			return resultCount(countReposSt)>0;
+//		} catch (SQLException e) {
+//			e.printStackTrace();
+//		}
+//		return false;
+//	}
+//	public boolean containsContributionInfo(String repo, String user) {
+//		try {
+//			countContributionsInfoSt.setString(1, repo);
+//			countContributionsInfoSt.setString(2, user);
+//			return resultCount(countContributionsSt)>0;
+//		} catch (SQLException e) {
+//			e.printStackTrace();
+//		}
+//		return false;
+//	}
+	
 	public boolean containsContribution(String repo, String user) {
 		try {
 			countContributionsSt.setString(1, repo);
@@ -369,17 +386,6 @@ public class SqlDataStore implements DataStore{
 		return false;
 	}
 
-	@Override
-	public boolean containsContributionInfo(String repo, String user) {
-		try {
-			countContributionsInfoSt.setString(1, repo);
-			countContributionsInfoSt.setString(2, user);
-			return resultCount(countContributionsSt)>0;
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return false;
-	}
 	
 	private int resultCount(PreparedStatement st){
 		ResultSet resultSet;

@@ -32,4 +32,9 @@ public class SimpleRepo{
 	public boolean equals(Object other){
 		return (other instanceof SimpleRepo) ? full_name.equals(((SimpleRepo)other).full_name) : false;
 	}
+	
+	@Override
+	public int hashCode(){
+		return full_name.hashCode();
+	}
 }

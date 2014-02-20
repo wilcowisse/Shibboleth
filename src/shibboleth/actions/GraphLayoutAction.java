@@ -1,6 +1,6 @@
 package shibboleth.actions;
 
-import shibboleth.model.GitGraph;
+import shibboleth.model.GephiGraph;
 
 /**
  * Apply layout algorithm to the graph.
@@ -14,9 +14,9 @@ import shibboleth.model.GitGraph;
  */
 public class GraphLayoutAction extends ShibbolethAction{
 
-	private GitGraph graph;
+	private GephiGraph graph;
 	
-	public GraphLayoutAction(GitGraph graph){
+	public GraphLayoutAction(GephiGraph graph){
 		this.graph = graph;
 	}
 	

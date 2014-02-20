@@ -45,7 +45,7 @@ import shibboleth.util.GithubUtil;
  * 
  * @author Wilco Wisse
  */
-public class GitGraph {
+public class GephiGraph implements GithubGraph{
 	
 	/**
 	 * Minimum edge size. 
@@ -76,7 +76,7 @@ public class GitGraph {
 	private Node initialNode;
 	
 	@SuppressWarnings("rawtypes")
-	public GitGraph(){
+	public GephiGraph(){
 		// bah... singletons :$
         ProjectController pc = Lookup.getDefault().lookup(ProjectController.class);
         pc.newProject();
@@ -115,13 +115,15 @@ public class GitGraph {
 		rankingController.transform(degreeRanking,sizeTransformer);
 	}
 	
-	/**
-	 * Add user to the graph, if the graph already contains this user, 
-	 * nothing is added.
-	 * @param user The user.
-	 * @return The Node belonging to the user.
-	 */
-	public Node add(SimpleUser user){
+	public void add(SimpleUser user){
+		addUser(user);
+	}
+	
+	public void add(SimpleRepo repo){
+		addRepo(repo);
+	}
+	
+	public Node addUser(SimpleUser user){
 		Node userNode = directedGraph.getNode(user.login);
 		if(userNode == null){
 			userNode = graphModel.factory().newNode(user.login);
@@ -135,13 +137,8 @@ public class GitGraph {
 		return userNode;
 	}
 	
-	/**
-	 * Add repo to the graph, if the graph already contains this repo, 
-	 * nothing is added.
-	 * @param repo The repo.
-	 * @return The Node belonging to the repo.
-	 */
-	public Node add(SimpleRepo repo){
+	
+	public Node addRepo(SimpleRepo repo){
 		Node repoNode = directedGraph.getNode(repo.full_name);
 		if(repoNode == null){
 			repoNode = graphModel.factory().newNode(repo.full_name);
@@ -155,12 +152,6 @@ public class GitGraph {
 		return repoNode;
 	}
 	
-	/**
-	 * Set color to a node. If color is null, standard 
-	 * colors are being applied.
-	 * @param nodeName The name of the node
-	 * @param color The color
-	 */
 	public void setColor(String nodeName, Color color){
 		if(color==null && GithubUtil.isRepoName(nodeName))
 			color = new Color(164,215,235);
@@ -181,14 +172,6 @@ public class GitGraph {
 		node.getNodeData().setColor(color.getRed()/255f,color.getGreen()/255f,color.getBlue()/255f);
 	}
 	
-	/**
-	 * Remove node with the given node name. Removes neighbors of the given
-	 * node if their degree will become equal to 0;
-	 * Generally speaking the node name is
-	 * either a Github user name or a Github repo name.
-	 * @param nodeName
-	 * @return Whether a node was indeed removed from the graph.
-	 */
 	public boolean remove(String nodeName){
 		Node node = directedGraph.getNode(nodeName);
 		if(node != null && node != initialNode){
@@ -208,9 +191,6 @@ public class GitGraph {
 		}
 	}
 	
-	/**
-	 * Remove all nodes from the graph.
-	 */
 	public void removeAll(){
 		Node[] allNodes = directedGraph.getNodes().toArray();
 		for(Node node : allNodes){
@@ -219,18 +199,12 @@ public class GitGraph {
 		rank();
 	}
 	
-	/**
-	 * Add a contribution to the graph.
-	 * The user and the committer of the contribution are added as well.
-	 * @param c
-	 */
-	public void addContribution(Contribution c){
-		
+	public void addContribution(Contribution c) {
 		SimpleUser user = c.getUser();
 		SimpleRepo repo = c.getRepo();
 		
-		Node userNode = add(user);
-		Node repoNode = add(repo);
+		Node userNode = addUser(user);
+		Node repoNode = addRepo(repo);
 		
 		Edge edge =  directedGraph.getEdge(repoNode, userNode);
 		if(edge == null){

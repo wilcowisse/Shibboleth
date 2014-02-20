@@ -36,7 +36,8 @@ public class HelpAction extends ShibbolethAction{
 		"refresh -- Repaint graph",
 		"rate -- Show github api account limits",
 		"token [token] -- Provide Github access token", 
-		"whereis [name] -- Highlight the given node"
+		"whereis [name] -- Highlight the given node",
+		"whereis c [name] -- Highlight neighbors of the given node"
 		};
 		
 		listener.messagePushed(message, commands);

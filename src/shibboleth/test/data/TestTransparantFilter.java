@@ -1,7 +1,7 @@
 package shibboleth.test.data;
 
 import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
 
 
 import org.junit.Test;

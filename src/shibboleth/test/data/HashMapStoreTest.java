@@ -1,7 +1,7 @@
 package shibboleth.test.data;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -13,7 +13,6 @@ import shibboleth.data.DataStore;
 import shibboleth.data.HashMapStore;
 import shibboleth.data.TransparantFilter;
 import shibboleth.model.Contribution;
-import shibboleth.model.ContributionInfo;
 import shibboleth.model.Repo;
 import shibboleth.model.SimpleRepo;
 import shibboleth.model.SimpleUser;
@@ -31,7 +30,6 @@ public class HashMapStoreTest {
 	private Contribution janR1_jan;
 	private Contribution pietR1_piet, pietR1_jan;
 	private Contribution janR1_simpleU1;
-	private Contribution simpleR1_kees;
 	
 	@Before
 	public void setUp() throws Exception {
@@ -77,21 +75,8 @@ public class HashMapStoreTest {
 		pietR1_piet = new Contribution(piet, pietR1);
 		pietR1_jan  = new Contribution(jan, pietR1);
 		janR1_simpleU1 = new Contribution(simpleU1, janR1);
-		simpleR1_kees  = new Contribution(kees, simpleR1);
 	}
 
-	@Test
-	public void testStoreRepo() {
-		store.storeRepo(keesR1);
-		assertThat(store.containsRepo("kees/R1"), is(true));
-	}
-
-	@Test
-	public void testStoreUser() {
-		store.storeUser(kees);
-		assertThat(store.containsUser("kees"), is(true));
-	}
-	
 	@Test
 	public void testGetUser() {
 		store.storeUser(kees);
@@ -107,25 +92,42 @@ public class HashMapStoreTest {
 	@Test
 	public void testStoreContribution() {
 		store.storeContribution(janR1_jan);
-		assertThat(store.containsContribution("jan/R1", "jan"), is(true));
 		
-		store.storeContribution(simpleR1_kees);
-		assertThat(store.containsContribution("simple/R1", "kees"), is(true));
+		List<Contribution> cs = Arrays.asList(store.getContributions("jan/R1", false));
+		assertThat(cs.contains(janR1_jan), is(true));
 		
+		List<Repo> repos = Arrays.asList(store.getRepos("jan", new TransparantFilter(), false));
+		
+		assertThat(repos.contains(janR1), is(false));
+		
+		store.storeRepo(janR1);
+		
+
+		repos = Arrays.asList(store.getRepos("jan", new TransparantFilter(), false));
+		assertThat(repos.contains(janR1), is(true));
+	}
+	
+	@Test
+	public void storeContributions() {
+		store.storeContribution(janR1_jan);
+		store.storeRepo(janR1);
+		store.storeRepo(keesR1);
+		
+		Contribution[] cs = new Contribution[]{janR1_jan, keesR1_henk};
+		store.storeNewContributions(cs);
+		assertThat(store.getRepos("jan", new TransparantFilter(), false).length, is(equalTo(1)));
 	}
 	
 	@Test
 	public void testGetReposWithoutStoredAllContributions() {
 		Contribution[] cs = {keesR2_kees, keesR1_kees};
-		store.storeContributions(cs);
+		store.storeNewContributions(cs);
 		store.storeRepo(keesR1);
 		store.storeRepo(keesR2);
-		
-		
+				
 		List<Repo> repos = Arrays.asList(store.getRepos("kees", new TransparantFilter(), false));
-		
-		assertThat(repos, hasItem(keesR1));
-		assertThat(repos, hasItem(keesR2));
+		assertThat(repos.contains(keesR1), is(true));
+		assertThat(repos.contains(keesR2), is(true));
 		
 		Repo[] repos2 = store.getRepos("kees", new TransparantFilter(), true);
 		assertThat(repos2, is(nullValue()));
@@ -134,29 +136,26 @@ public class HashMapStoreTest {
 	@Test
 	public void testGetReposWithStoredAllContributions() {
 		Contribution[] cs = {keesR2_kees, keesR1_kees};
-		store.storeContributions(cs);
+		store.storeNewContributions(cs);
 		store.storeRepo(keesR1);
 		store.storeRepo(keesR2);
 		store.storedAllContributionsByUser("kees", true);
 		
 		List<Repo> repos = Arrays.asList(store.getRepos("kees", new TransparantFilter(), false));
-		assertThat(repos, hasItem(keesR1));
-		assertThat(repos, hasItem(keesR2));
+		assertThat(repos.contains(keesR1), is(true));
+		assertThat(repos.contains(keesR2), is(true));
 		
-		List<Repo> repos2 = Arrays.asList(store.getRepos("kees", new TransparantFilter(), false));
-		assertThat(repos2, hasItem(keesR1));
-		assertThat(repos2, hasItem(keesR2));
 	}
 	
 	@Test
 	public void testGetContributionsWithhoutStoredAllContributions() {
 		Contribution[] cs = {keesR1_kees, keesR1_henk, keesR1_jan};
-		store.storeContributions(cs);
+		store.storeNewContributions(cs);
 		
 		List<Contribution> contributions = Arrays.asList(store.getContributions("kees/R1", false));
-		assertThat(contributions, hasItem(keesR1_kees));
-		assertThat(contributions, hasItem(keesR1_henk));
-		assertThat(contributions, hasItem(keesR1_jan));
+		assertThat(contributions.contains(keesR1_kees), is(true));
+		assertThat(contributions.contains(keesR1_henk), is(true));
+		assertThat(contributions.contains(keesR1_jan), is(true));
 		
 		Contribution[] contributions2 = store.getContributions("kees/R1", true);
 		assertThat(contributions2, is(nullValue()));
@@ -166,30 +165,22 @@ public class HashMapStoreTest {
 	@Test
 	public void testGetContributionsWithStoredAllContributions() {
 		Contribution[] cs = {keesR1_kees, keesR1_henk, keesR1_jan};
-		store.storeContributions(cs);
+		store.storeNewContributions(cs);
 		store.storedAllContributionsForRepo("kees/R1", true);
 		
 		List<Contribution> contributions = Arrays.asList(store.getContributions("kees/R1", false));
-		assertThat(contributions, hasItem(keesR1_kees));
-		assertThat(contributions, hasItem(keesR1_henk));
-		assertThat(contributions, hasItem(keesR1_jan));
+		assertThat(contributions.contains(keesR1_kees), is(true));
+		assertThat(contributions.contains(keesR1_henk), is(true));
+		assertThat(contributions.contains(keesR1_jan), is(true));
 		
 		assertThat(store.getContributions("kees/R1", true), is(not(nullValue())));
 		List<Contribution> contributions2 = Arrays.asList(store.getContributions("kees/R1", true));
 
-		assertThat(contributions2, hasItem(keesR1_kees));
-		assertThat(contributions2, hasItem(keesR1_henk));
-		assertThat(contributions2, hasItem(keesR1_jan));
+		assertThat(contributions2.contains(keesR1_kees), is(true));
+		assertThat(contributions2.contains(keesR1_henk), is(true));
+		assertThat(contributions2.contains(keesR1_jan), is(true));
 	}
 	
-	@Test
-	public void testContainsContributionInfo() {
-		Contribution c = new Contribution(kees, keesR1);
-		c.setContributionInfo(new ContributionInfo(100, 100));
-		store.storeContribution(c);
-		assertThat(store.containsContribution("kees/R1", "kees"), is(true));
-		assertThat(store.containsContributionInfo("kees/R1", "kees"), is(true));
-	}
 
 	@Test
 	public void testDeleteRepo() {
@@ -218,7 +209,7 @@ public class HashMapStoreTest {
 	@Test
 	public void testDeleteContributionsByUser() {
 		Contribution[] cs = {keesR1_jan, pietR1_jan, janR1_jan, janR1_simpleU1};
-		store.storeContributions(cs);
+		store.storeNewContributions(cs);
 		store.storeRepo(janR1);
 		store.storeRepo(pietR1);
 		store.storeRepo(keesR1);
@@ -226,10 +217,10 @@ public class HashMapStoreTest {
 		store.deleteContributionsByUser("jan");
 		
 		assertThat(store.getRepos("kees", new TransparantFilter(), false).length , is(equalTo(0)));
-		assertThat(store.containsRepo("kees/R1"), is(true));
-		assertThat(store.containsRepo("jan/R1"), is(true));
-		assertThat(store.containsRepo("piet/R1"), is(true));
-		assertThat(store.containsUser("jan"), is(true));
+		assertThat(store.getRepo("kees/R1"), is(not(nullValue())));
+		assertThat(store.getRepo("jan/R1"), is(not(nullValue())));
+		assertThat(store.getRepo("piet/R1"), is(not(nullValue())));
+		assertThat(store.getUser("jan"), is(not(nullValue())));
 		
 		assertThat(store.getRepos("simpleU1", new TransparantFilter() , false).length, is(equalTo(1)));
 	}
@@ -237,25 +228,26 @@ public class HashMapStoreTest {
 	@Test
 	public void testDeleteContributionsByRepo() {
 		Contribution[] cs = {keesR1_kees, keesR1_henk, keesR1_jan, pietR1_jan};
-		store.storeContributions(cs);
+		store.storeNewContributions(cs);
 		store.storeRepo(keesR1);
 		store.storeUser(kees);
 		store.deleteContributionsByRepo("kees/R1");
 		assertThat(store.getContributions("kees/R1", false).length , is(equalTo(0)));
-		assertThat(store.containsRepo("kees/R1"), is(true));
-		assertThat(store.containsUser("kees"), is(true));
+		assertThat(store.getRepo("kees/R1"), is(not(nullValue())));
+		assertThat(store.getUser("kees"), is(not(nullValue())));
 		
 		assertThat(store.getContributions("piet/R1", false).length, is(equalTo(1)));
 		List<Contribution> contributionsPietR1 = Arrays.asList(store.getContributions("piet/R1", false));
-		assertThat(contributionsPietR1, hasItem(pietR1_jan));
+		assertThat(contributionsPietR1.contains(pietR1_jan), is(true));
+		
 	}
 
 	@Test
 	public void testGetAllContributions() {
 		Contribution[] cs = {keesR1_kees, keesR1_henk, keesR1_jan, pietR1_jan};
-		store.storeContributions(cs);
+		store.storeNewContributions(cs);
 		Contribution[] cs2 = {keesR1_kees, keesR1_henk, keesR1_jan};
-		store.storeContributions(cs2);
+		store.storeNewContributions(cs2);
 		
 		assertThat(store.getAllContributions().length , is(equalTo(4)));
 	}

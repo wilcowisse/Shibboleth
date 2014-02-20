@@ -5,7 +5,7 @@ import shibboleth.data.JavaScriptFilter;
 import shibboleth.data.RepoFilter;
 import shibboleth.data.TransparantFilter;
 import shibboleth.model.Contribution;
-import shibboleth.model.GitGraph;
+import shibboleth.model.GithubGraph;
 import shibboleth.model.Repo;
 import shibboleth.model.SimpleRepo;
 import shibboleth.model.SimpleUser;
@@ -28,9 +28,9 @@ import shibboleth.util.GithubUtil;
 public class GetAction extends ShibbolethAction{
 	
 	private DataSource source;
-	private GitGraph graph;
+	private GithubGraph graph;
 	
-	public GetAction(DataSource source, GitGraph graph){
+	public GetAction(DataSource source, GithubGraph graph){
 		this.source = source;
 		this.graph = graph;
 	}

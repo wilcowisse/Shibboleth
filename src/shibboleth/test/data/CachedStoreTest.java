@@ -1,10 +1,11 @@
 package shibboleth.test.data;
 
 import static org.mockito.Mockito.*;
+//import static org.mockito.Matchers.*;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Matchers;
+
 import org.mockito.Mock;
 
 import shibboleth.data.CachedStore;
@@ -53,28 +54,28 @@ public class CachedStoreTest {
 	public void testStoreRepo() {
 		store.storeRepo(repo1);
 		verify(cache).storeRepo(repo1);
-		verify(source, never()).storeRepo(Matchers.any(Repo.class));
+		verify(source, never()).storeRepo(any(Repo.class));
 	}
 
 	@Test
 	public void testStoreUser() {
 		store.storeUser(user1);
 		verify(cache).storeUser(user1);
-		verify(source, never()).storeUser(Matchers.any(User.class));
+		verify(source, never()).storeUser(any(User.class));
 	}
 
 	@Test
 	public void testStoreContribution() {
 		store.storeContribution(c1);
 		verify(cache).storeContribution(c1);
-		verify(source, never()).storeContribution(Matchers.any(Contribution.class));
+		verify(source, never()).storeContribution(any(Contribution.class));
 	}
 
 	@Test
 	public void testStoreContributions() {
 		Contribution[] cs = {c1,c2};
-		store.storeContributions(cs);
-		verify(cache).storeContributions(cs);
+		store.storeNewContributions(cs);
+		verify(cache).storeNewContributions(cs);
 		verifyZeroInteractions(source);
 	}
 
@@ -132,9 +133,11 @@ public class CachedStoreTest {
 	@Test
 	public void testGetUserFromSource() {
 		when(cache.getUser("user1")).thenReturn(null);
+		when(source.getUser("user1")).thenReturn(user1);
 		store.getUser("user1");
 		verify(cache).getUser("user1");
 		verify(source).getUser("user1");
+		verify(cache).storeUser(user1);
 	}
 
 	@Test
@@ -145,6 +148,16 @@ public class CachedStoreTest {
 		verifyZeroInteractions(source);
 	}
 
+	@Test
+	public void testGetRepoFromSource() {
+		when(cache.getRepo("repo")).thenReturn(null);
+		when(source.getRepo("repo")).thenReturn(repo1);
+		store.getRepo("repo");
+		verify(cache).getRepo("repo");
+		verify(source).getRepo("repo");
+		verify(cache).storeRepo(repo1);
+	}
+	
 	@Test
 	public void testGetContributions() {
 		Contribution[] mockResult = {c1, c2};
@@ -178,81 +191,53 @@ public class CachedStoreTest {
 		verify(cache).getContributions("repo", true);
 		verify(source).getContributions("repo", true);
 		
-		verify(cache).storeContributions(mockResult);
+		verify(cache).storeNewContributions(mockResult);
 		verify(cache).storedAllContributionsForRepo("repo", true);
 	}
 
 	@Test
 	public void testGetRepos() {
 		Repo[] mockResult = {repo1, repo2};
-		when(cache.getRepos(eq("user1"), Matchers.any(RepoFilter.class), eq(false)))
+		when(cache.getRepos(eq("user1"), any(RepoFilter.class), eq(false)))
 		.thenReturn(mockResult)
 		.thenReturn(new Repo[]{});
 		
 		store.getRepos("user1", new TransparantFilter(), false);
 		store.getRepos("user1", new TransparantFilter(), false);
 		
-		verify(cache, times(2)).getRepos(eq("user1"), Matchers.any(RepoFilter.class), eq(false));
+		verify(cache, times(2)).getRepos(eq("user1"), any(RepoFilter.class), eq(false));
 		verifyZeroInteractions(source);
 	}
 	
 	@Test
 	public void testGetReposFromCache() {
 		Repo[] mockResult = {repo1, repo2};
-		when(cache.getRepos(eq("user1"), Matchers.any(RepoFilter.class), eq(true)))
+		when(cache.getRepos(eq("user1"), any(RepoFilter.class), eq(true)))
 		.thenReturn(mockResult);
 		
 		store.getRepos("user1", new TransparantFilter(), true);
 		
-		verify(cache).getRepos(eq("user1"), Matchers.any(RepoFilter.class), eq(true));
+		verify(cache).getRepos(eq("user1"), any(RepoFilter.class), eq(true));
 		verifyZeroInteractions(source);
 	}
 	
 	@Test
 	public void testGetReposFromSource() {
 		Repo[] mockResult = {repo1, repo2};
-		when(cache.getRepos(eq("user1"), Matchers.any(RepoFilter.class), eq(true)))
+		when(cache.getRepos(eq("user1"), any(RepoFilter.class), eq(true)))
 		.thenReturn(null);
-		when(source.getRepos(eq("user1"), Matchers.any(RepoFilter.class), eq(true)))
+		when(source.getRepos(eq("user1"), any(RepoFilter.class), eq(true)))
 		.thenReturn(mockResult);
 		
 		store.getRepos("user1", new TransparantFilter(), true);
 		
-		verify(cache).getRepos(eq("user1"), Matchers.any(RepoFilter.class), eq(true));
-		verify(source).getRepos(eq("user1"), Matchers.any(RepoFilter.class), eq(true));
+		verify(cache).getRepos(eq("user1"), any(RepoFilter.class), eq(true));
+		verify(source).getRepos(eq("user1"), any(RepoFilter.class), eq(true));
 		
 		verify(cache).storeRepo(repo1);
 		verify(cache).storeRepo(repo2);
 		
 		verify(cache).storedAllContributionsByUser("user1", true);
-	}
-
-	@Test
-	public void testContainsUser() {
-		store.containsUser("user");
-		verify(cache).containsUser("user");
-		verifyZeroInteractions(source);
-	}
-
-	@Test
-	public void testContainsRepo() {
-		store.containsRepo("repo");
-		verify(cache).containsRepo("repo");
-		verifyZeroInteractions(source);
-	}
-
-	@Test
-	public void testContainsContribution() {
-		store.containsContribution("repo", "user");
-		verify(cache).containsContribution("repo", "user");
-		verifyZeroInteractions(source);
-	}
-
-	@Test
-	public void testContainsContributionInfo() {
-		store.containsContributionInfo("repo", "user");
-		verify(cache).containsContributionInfo("repo", "user");
-		verifyZeroInteractions(source);
 	}
 
 	@Test

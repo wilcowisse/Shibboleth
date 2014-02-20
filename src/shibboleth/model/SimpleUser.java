@@ -32,4 +32,8 @@ public class SimpleUser{
 		return (other instanceof SimpleUser) ? login.equals(((SimpleUser)other).login) : false;
 	}
     
+	@Override
+	public int hashCode(){
+		return login.hashCode();
+	}
 }

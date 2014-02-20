@@ -81,7 +81,7 @@ public class Statements {
 	
 	
 	public static final String insertContribution = 
-			"INSERT INTO Contributions VALUES (null, ?, ?);";
+	"INSERT INTO Contributions VALUES (null, ?, ?);";
 			
 	
 	/********************************************/

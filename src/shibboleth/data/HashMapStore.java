@@ -95,29 +95,29 @@ public class HashMapStore implements DataStore{
 		storedAllContributionsForRepo.clear();
 	}
 
-	@Override
-	public boolean containsUser(String userName) {
-		return users.containsKey(userName);
-	}
-
-	@Override
-	public boolean containsRepo(String repoName) {
-		return repos.containsKey(repoName);
-	}
-
-	@Override
-	public boolean containsContribution(String repo, String user) {
-		return getContribution(repo, user) != null;
-	}
-
-	@Override
-	public boolean containsContributionInfo(String repo, String user) {
-		Contribution c = getContribution(repo, user);
-		if(c != null)
-			return c.hasContributionInfo();
-		else	
-			return false;
-	}
+//	@Override
+//	public boolean containsUser(String userName) {
+//		return users.containsKey(userName);
+//	}
+//
+//	@Override
+//	public boolean containsRepo(String repoName) {
+//		return repos.containsKey(repoName);
+//	}
+//
+//	@Override
+//	public boolean containsContribution(String repo, String user) {
+//		return getContribution(repo, user) != null;
+//	}
+//
+//	@Override
+//	public boolean containsContributionInfo(String repo, String user) {
+//		Contribution c = getContribution(repo, user);
+//		if(c != null)
+//			return c.hasContributionInfo();
+//		else	
+//			return false;
+//	}
 	
 	@Override
 	public void storeRepo(Repo repo) {
@@ -135,14 +135,20 @@ public class HashMapStore implements DataStore{
 	 */
 	@Override
 	public void storeContribution(Contribution c) {
-		if(!contributions.contains(c))
-			contributions.add(c);
+		contributions.add(c);
 	}
 	
 	@Override
-	public void storeContributions(Contribution[] cs) {
+	public void storeNewContributions(Contribution[] cs) {
 		for(Contribution c : cs){
-			storeContribution(c);
+			boolean containContribution = contributions.contains(c);
+			if(!containContribution)
+				contributions.add(c);
+			else{
+				if(c.hasContributionInfo()){
+					contributions.get(contributions.indexOf(c)).setContributionInfo(c.getContributionInfo());
+				}
+			}
 		}
 	}
 
@@ -198,15 +204,15 @@ public class HashMapStore implements DataStore{
 		
 	}
 	
-	private Contribution getContribution(String repo, String user){
-		Contribution result = null;
-		for(Contribution c: contributions){
-			if(c.getUser().login.equals(user) && c.getRepo().full_name.equals(repo)){
-				return c;
-			}
-		}
-		return result;
-	}
+//	private Contribution getContribution(String repo, String user){
+//		Contribution result = null;
+//		for(Contribution c: contributions){
+//			if(c.getUser().login.equals(user) && c.getRepo().full_name.equals(repo)){
+//				return c;
+//			}
+//		}
+//		return result;
+//	}
 
 	@Override
 	public void storedAllContributionsForRepo(String repo, boolean stored) {

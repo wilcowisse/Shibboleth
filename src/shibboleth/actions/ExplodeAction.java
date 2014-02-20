@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import shibboleth.data.DataStore;
+import shibboleth.data.DataSource;
 import shibboleth.data.JavaScriptFilter;
 import shibboleth.data.RepoFilter;
 import shibboleth.model.Contribution;
-import shibboleth.model.GitGraph;
+import shibboleth.model.GithubGraph;
 import shibboleth.model.Repo;
 import shibboleth.util.GithubUtil;
 
@@ -25,8 +25,8 @@ import shibboleth.util.GithubUtil;
  */
 public class ExplodeAction extends ShibbolethAction{
 	
-	private DataStore store;
-	private GitGraph graph;
+	private DataSource source;
+	private GithubGraph graph;
 	private RepoFilter filter;
 	private boolean ensureAll;
 	
@@ -37,8 +37,8 @@ public class ExplodeAction extends ShibbolethAction{
 	
 	private Queue<String> bfsQueue;
 	
-	public ExplodeAction(DataStore store, GitGraph graph){
-		this.store=store;
+	public ExplodeAction(DataSource source, GithubGraph graph){
+		this.source=source;
 		this.graph=graph;
 	}
 	
@@ -67,20 +67,8 @@ public class ExplodeAction extends ShibbolethAction{
 			
 			explode(argument,depth);
 			
-			if(args.length==3 && "-d".equals(args[2])){
-				for(String u : explodedUsers){
-					graph.remove(u);
-					store.deleteUser(u);
-				}
-				for(String r : explodedRepos){
-					graph.remove(r);
-					store.deleteRepo(r);
-				}
-			}
-			else{
-				for(Contribution c : explodedContributions){
-					graph.addContribution(c);
-				}
+			for(Contribution c : explodedContributions) {
+				graph.addContribution(c);
 			}
 			
 			listener.graphChanged("Exploded "+ explodedUsers.size() + " users and " +  explodedRepos.size() + " repos", false);
@@ -145,7 +133,7 @@ public class ExplodeAction extends ShibbolethAction{
 	
 	public String[] getChildren(String node){
 		if(GithubUtil.isUserName(node)){
-			Repo[] reposByUser = store.getRepos(node, filter, ensureAll);
+			Repo[] reposByUser = source.getRepos(node, filter, ensureAll);
 			Contribution[] cs = GithubUtil.reposToContributions(reposByUser, GithubUtil.createUser(node));
 			String[] res = new String[cs.length];
 			for(int i=0; i<cs.length; i++){
@@ -157,7 +145,7 @@ public class ExplodeAction extends ShibbolethAction{
 			return res;
 		}
 		else{
-			Contribution[] cs = store.getContributions(node, ensureAll);
+			Contribution[] cs = source.getContributions(node, ensureAll);
 			String[] res = new String[cs.length];
 			for(int i=0; i<cs.length; i++){
 				Contribution c = cs[i];

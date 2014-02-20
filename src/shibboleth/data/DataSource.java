@@ -61,34 +61,20 @@ public interface DataSource {
 	 */
 	public Contribution[] getAllContributions();
 	
-	/**
-	 * Whether the source contains the given user.
-	 * @return Returns <tt>true</tt> iff this source contains the user 
-	 * with the given <tt>userName</tt>.
-	 */
-	public boolean containsUser(String userName);
-	
-	/**
-	 * Whether the source contains the given repo.
-	 * @return Returns <tt>true</tt> iff this source contains the repo 
-	 * with the given <tt>repoName</tt>
-	 */
-	public boolean containsRepo(String repoName);
-	
-	/**
-	 * Whether the source contains the given contribution.
-	 * @return Returns <tt>true</tt> iff this source contains a contribution 
-	 * for <tt>repo</tt> by <tt>user</tt>.
-	 */
-	public boolean containsContribution(String repo, String user);
-	
-	/**
-	 * Whether the source contains the given contribution information.
-	 * @return Returns <tt>true</tt> iff this source contains contribution 
-	 * information for <tt>repo</tt> by <tt>user</tt>.
-	 * @see shibboleth.model.Contribution#getContributionInfo()
-	 */
-	public boolean containsContributionInfo(String repo, String user);
+//	/**
+//	 * Whether the source contains the given contribution.
+//	 * @return Returns <tt>true</tt> iff this source contains a contribution 
+//	 * for <tt>repo</tt> by <tt>user</tt>.
+//	 */
+//	public boolean containsContribution(String repo, String user);
+//	
+//	/**
+//	 * Whether the source contains the given contribution information.
+//	 * @return Returns <tt>true</tt> iff this source contains contribution 
+//	 * information for <tt>repo</tt> by <tt>user</tt>.
+//	 * @see shibboleth.model.Contribution#getContributionInfo()
+//	 */
+//	public boolean containsContributionInfo(String repo, String user);
 	
 	
 }

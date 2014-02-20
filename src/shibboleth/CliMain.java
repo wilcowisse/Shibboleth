@@ -6,6 +6,7 @@ import shibboleth.actions.ActionExecutor;
 import shibboleth.actions.BasicActionExecutor;
 import shibboleth.gui.ActionListener;
 import shibboleth.gui.CliActionListener;
+import shibboleth.model.GephiGraph;
 
 /**
  * Runs the Shibboleth Application with a CLI interface.
@@ -14,16 +15,17 @@ import shibboleth.gui.CliActionListener;
  *
  */
 public class CliMain extends Main {
-
+	
 	public CliMain(){
-		initApp();
+		//initApp(createMySqlConnection("user", "pass"), new GephiGraph());
+		initApp(createSqliteConnection("db/db.sqlite"), new GephiGraph());
+		
 		ActionListener cli = new CliActionListener();
 		ActionExecutor executor = new BasicActionExecutor();
-		
 		initActions(cli, executor);
 		
-		Scanner scanner = new Scanner(System.in);
 		cli.messagePushed("Enter commands. Provide an empty string to quit.");
+		Scanner scanner = new Scanner(System.in);
 		while(true){
 			String command = scanner.nextLine();
 			
@@ -38,6 +40,8 @@ public class CliMain extends Main {
 		}
 		
 	}
+	
+	
 	
 	public static void main(String[] args) {
 		new CliMain();

@@ -1,8 +1,10 @@
 package shibboleth.model;
 
+import java.util.Objects;
+
 /**
  * Represents a contribution to a repo by a user. 
- * <b>Note: not vice versa.</b> .
+ * 
  * @author Wilco Wisse
  * @see ContributionInfo
  */
@@ -69,6 +71,11 @@ public class Contribution {
 				user.login.equals(((Contribution)other).getUser().login) 
 				&& repo.full_name.equals(((Contribution)other).getRepo().full_name) 
 				: false;
+	}
+	
+	@Override
+	public int hashCode(){
+		return Objects.hash(user,repo);
 	}
 	
 	@Override

@@ -246,26 +246,6 @@ public class GithubDataSource implements DataSource{
 	}
 	
 	@Override
-	public boolean containsUser(String userName) {
-		return true;
-	}
-
-	@Override
-	public boolean containsRepo(String repoName) {
-		return true;
-	}
-
-	@Override
-	public boolean containsContribution(String repo, String user) {
-		return true;
-	}
-
-	@Override
-	public boolean containsContributionInfo(String repo, String user) {
-		return true;
-	}
-	
-	@Override
 	public Contribution[] getAllContributions() {
 		return new Contribution[]{};
 	}
