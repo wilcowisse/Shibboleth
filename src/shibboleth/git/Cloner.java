@@ -43,6 +43,7 @@ public class Cloner {
 			.call();
 		} catch (GitAPIException e) {
 			e.printStackTrace();
+			return null;
 		}
 		return cloneDir;
 	}
@@ -60,7 +61,7 @@ public class Cloner {
 	 * @return The full path of repo <tt>r</tt>.
 	 */
 	public File getClonePath(Repo r){
-		return new File(baseDir+"/"+getDirName(r));
+		return new File(baseDir+System.getProperty("file.separator")+getDirName(r));
 	}
 	
 

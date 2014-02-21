@@ -16,6 +16,7 @@ import shibboleth.model.Chunk;
 import shibboleth.model.Committer;
 import shibboleth.model.GitFile;
 import shibboleth.model.RecordLink;
+import shibboleth.model.UnknownUser;
 import shibboleth.model.User;
 
 /**
@@ -30,7 +31,8 @@ import shibboleth.model.User;
 public class CommitInfoStore {
 	
 	private PreparedStatement insertFile, insertCommitter, insertChunk, insertRecordLink;
-	private PreparedStatement selectCommitterId, selectFileId, selectCommittersByRepo;
+	private PreparedStatement selectCommitterId, selectFileId, selectCommittersByRepo, selectChunkId;
+	private PreparedStatement deleteRecordLink;
 	
 	private List<Committer> committers;
 	private List<GitFile> files;
@@ -50,8 +52,10 @@ public class CommitInfoStore {
 			insertCommitter 		=  connection.prepareStatement(Statements.insertCommitter, Statement.RETURN_GENERATED_KEYS);
 			insertChunk 			=  connection.prepareStatement(Statements.insertChunk, Statement.RETURN_GENERATED_KEYS);
 			insertRecordLink		=  connection.prepareStatement(Statements.insertRecordLink);
+			deleteRecordLink		=  connection.prepareStatement(Statements.deleteRecordLink);
 			selectCommitterId		=  connection.prepareStatement(Statements.selectCommitterId);
 			selectFileId			=  connection.prepareStatement(Statements.selectFileId);
+			selectChunkId			=  connection.prepareStatement(Statements.selectChunkId);
 			selectCommittersByRepo 	=  connection.prepareStatement(Statements.selectCommittersByRepo);
 			
 		} catch (SQLException e) {
@@ -80,7 +84,7 @@ public class CommitInfoStore {
 	 */
 	public void insert(Committer committer){
 		if(!committers.contains(committer))
-		committers.add(committer);
+			committers.add(committer);
 	}
 	
 	/**
@@ -118,7 +122,7 @@ public class CommitInfoStore {
 				fileIds.put(file, fileId);
 			}
 			else{
-				throw new SQLException("No key found for file "+file);
+				return -1;
 			}
 		}
 		return fileId;
@@ -146,87 +150,111 @@ public class CommitInfoStore {
 				committerIds.put(committer, committerId);
 			}
 			else{
-				throw new SQLException("No key found for committer "+committer);
+				return -1;
 			}
 		}
 		return committerId;
 	}
 	
 	/**
+	 * Get the database record id of the given chunk.
+	 * @param chunk The chunk
+	 * @param fileId The DB id belonging to the file of the chunk.
+	 * @param committerId The DB id belonging to the committer of the chunk.
+	 * @return the id of the given chunk if the chunk exists in db, 
+	 * otherwise -1.
+	 * @throws SQLException
+	 */
+	public int getChunkId(Chunk chunk, int fileId, int committerId) throws SQLException{
+		int chunkId = -1;
+		
+		String when = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss").format(chunk.when);
+		selectChunkId.setInt(1,fileId);
+		selectChunkId.setInt(2,chunk.start);
+		selectChunkId.setInt(3,chunk.end);
+		selectChunkId.setInt(4,committerId);
+		selectChunkId.setString(5,when);
+		
+		ResultSet resultSet = selectChunkId.executeQuery();
+		if(resultSet.next()){
+			chunkId = resultSet.getInt("id");
+		}
+		
+		return chunkId;
+	}
+	
+	/**
 	 * Flush the committer, file and chunk buffers to the database. In general no
 	 * item is stored if the item is already present in the database.
 	 */
-	public void writeToDB(){
-		
+	public void writeToDB() throws SQLException{
 		for(Committer c : committers){
-			try {
+			int committerKey = getCommitterId(c);
+			if(committerKey == -1){
 				insertCommitter.setString(1, c.repo);
 				insertCommitter.setString(2, c.email);
 				insertCommitter.setString(3, c.name);
 				
-				insertCommitter.setString(4, c.repo);
-				insertCommitter.setString(5, c.email);
-				insertCommitter.setString(6, c.name);
+				System.out.println(insertCommitter);
 				insertCommitter.executeUpdate();
 				
-				int key = -1;
+				int affected = insertCommitter.getUpdateCount();
+				System.out.println("affected commiters" + affected);
+				committerKey = -1;
 				ResultSet generatedKeys = insertCommitter.getGeneratedKeys();
 				if(generatedKeys.next()){
-					key = generatedKeys.getInt(1);
-					committerIds.put(c, key);
+					committerKey = generatedKeys.getInt(1);
+					committerIds.put(c, committerKey);
+					System.out.println("Generated committer "+committerKey);
 				}
-				
-			} catch (SQLException e) {
-				e.printStackTrace();
+				else{
+					System.out.println("Generated no commiter id");
+				}
 			}
+
 		}
 		
 		for(GitFile f : files){
-			try {
+			int fileKey = getFileId(f);
+			if(fileKey == -1){
 				insertFile.setString(1, f.repo);
 				insertFile.setString(2, f.head);
 				insertFile.setString(3, f.filename);
 				
-				insertFile.setString(4, f.repo);
-				insertFile.setString(5, f.head);
-				insertFile.setString(6, f.filename);
 				insertFile.executeUpdate();
+				
+				int affected = insertFile.getUpdateCount();
+				System.out.println("affected files" + affected);
 				
 				int key = -1;
 				ResultSet generatedKeys = insertFile.getGeneratedKeys();
 				if(generatedKeys.next()){
 					key = generatedKeys.getInt(1);
 					fileIds.put(f, key);
+					System.out.println("Generated file "+key);
 				}
-				
-			} catch (SQLException e) {
-				e.printStackTrace();
+				else{
+					System.out.println("Generated no file id");
+				}
 			}
+
 		}
-				
+			
 		for(Chunk c : chunks){
-			try {
+			int fileId = getFileId(c.file);
+			int committerId = getCommitterId(c.committer);
+			
+			if(getChunkId(c, fileId, committerId) == -1){
 				String when = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss").format(c.when);
-				int fileId = getFileId(c.file);
-				int committerId = getCommitterId(c.committer);
-				
 				insertChunk.setInt(1, fileId);
 				insertChunk.setInt(2, c.start);
 				insertChunk.setInt(3, c.end);
 				insertChunk.setInt(4, committerId);
 				insertChunk.setString(5, when);
 				
-				insertChunk.setInt(6, fileId);
-				insertChunk.setInt(7, c.start);
-				insertChunk.setInt(8, c.end);
-				insertChunk.setInt(9, committerId);
-				insertChunk.setString(10, when);
-				
 				insertChunk.executeUpdate();
-								
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			}					
+
 		}
 		
 		committers.clear();
@@ -264,14 +292,25 @@ public class CommitInfoStore {
 	 */
 	public void insertRecordLink(RecordLink link){
 		try {
-			if(link.user == User.UNKNOWN_USER){
-				return;
+			if(!link.user.equals(UnknownUser.getInstance())){
+				insertRecordLink.setInt(1, getCommitterId(link.committer));
+				insertRecordLink.setString(2, link.user.login);
+				insertRecordLink.executeUpdate();
 			}
 			
-			insertRecordLink.setInt(1, getCommitterId(link.committer));
-			insertRecordLink.setString(2, link.user.login);
-			insertRecordLink.executeUpdate();		
-			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Delete RecordLinks of a committer
+	 * @param committerId The db id of the committer.
+	 */
+	public void deleteRecordLink(int committerId){
+		try {
+			 deleteRecordLink.setInt(1, committerId);
+			 deleteRecordLink.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

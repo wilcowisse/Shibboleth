@@ -31,7 +31,7 @@ public class SqlDataStore implements DataStore{
 	
 	private PreparedStatement selectRepoSt, selectUserSt, selectReposByUserSt, selectContributionsSt, selectSingleContributionSt, selectAllContributionsSt;
 	private PreparedStatement insertRepoSt, insertUserSt, insertContributionSt, insertContributionInfoSt;
-	private PreparedStatement countContributionsSt, countContributionsInfoSt;
+	private PreparedStatement countContributionsSt;
 	private PreparedStatement deleteRepoSt, deleteUserSt, deleteContributionByRepoSt, deleteContributionByUserSt, deleteContributionInfoByRepoSt, deleteContributionInfoByUserSt;
 	
 	private PreparedStatement insertStoredLinksSt, deleteStoredLinksSt, selectStoredLinksSt;
@@ -66,7 +66,6 @@ public class SqlDataStore implements DataStore{
 			countContributionsSt		= connection.prepareStatement(Statements.countContributions);
 			
 			insertContributionInfoSt 	= connection.prepareStatement(Statements.insertContributionInfo);
-			countContributionsInfoSt	= connection.prepareStatement(Statements.countContributionsInfo);
 			
 			insertStoredLinksSt			= connection.prepareStatement(Statements.insertStoredLinks);
 			deleteStoredLinksSt			= connection.prepareStatement(Statements.deleteStoredLinks);

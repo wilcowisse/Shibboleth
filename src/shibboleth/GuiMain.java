@@ -23,7 +23,6 @@ public class GuiMain extends Main {
 		new GraphLayoutAction(graph)
 		.addActionListener(gui)
 		.addExecutor(gui.getActionExecutor());
-		
 	}
 		
 	public static void main(String[] args) {

@@ -51,9 +51,7 @@ public class CommandField extends JTextField implements ActionExecutor, KeyListe
 		this.addKeyListener(this);
 		setDisabledTextColor(Color.GRAY);
 		
-		Insets insets = getInsets();
-		insets.left=17;
-		setMargin(insets);
+		setMargin(new Insets(2, 20, 2, 2));
 	}
 	
 	
@@ -64,7 +62,7 @@ public class CommandField extends JTextField implements ActionExecutor, KeyListe
 		Graphics2D g2 = (Graphics2D) g;
 		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		
-		Font font = new Font("Monospaced", Font.BOLD, 12);
+		Font font = new Font("Monospaced", Font.PLAIN, 12);
 		g2.setFont(font);
 		int fontHeight = g2.getFontMetrics().getHeight();
 		int y = getHeight()/2 +fontHeight/2-3;

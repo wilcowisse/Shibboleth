@@ -121,36 +121,28 @@ public class Statements {
 	
 	
 	public static final String insertCommitter = 
-	"INSERT INTO Committers(id,repo,email,name) " +
-	"SELECT null, ?, ?, ? " + (db_name.equals("mysql") ? "FROM dual " : "") +
-	"WHERE NOT EXISTS (" +
-	"SELECT * FROM Committers " +
-	"WHERE repo=? AND email=? AND name=?)";
+	"INSERT INTO Committers(id,repo,email,name) VALUES (null, ?, ?, ?);";
 	
 	
 	public static final String insertFile = 
-	"INSERT INTO Files(id,repo,head,file_path) " +
-	"SELECT null, ?, ?, ? " + (db_name.equals("mysql") ? "FROM dual " : "") +
-	"WHERE NOT EXISTS (" +
-	"SELECT * FROM Files " +
-	"WHERE repo=? AND head=? AND file_path=?)";
-	
+	"INSERT INTO Files(id,repo,head,file_path) VALUES (null, ?, ?, ?);";
 	
 	public static final String insertChunk = 
-	"INSERT INTO Chunks(id,file_id, start,end,committer_id, time) " +
-	"SELECT null,?,?,?,?,? " + (db_name.equals("mysql") ? "FROM dual " : "") +
-	"WHERE NOT EXISTS (" +
-	"SELECT * FROM Chunks " +
-	"WHERE file_id=? AND start=? AND end=? AND committer_id=? AND time=?)";
-	
+	"INSERT INTO Chunks(id,file_id, start,end,committer_id, time) VALUES (null,?,?,?,?,?);";
+
 	public static final String selectCommitterId = 
-	"SELECT id FROM Committers WHERE repo=? AND email=? AND name=?;";
+	"SELECT id FROM Committers WHERE repo=? AND email=? AND name=? LIMIT 1;";
 	
 	public static final String selectFileId = 
-	"SELECT id FROM Files WHERE repo=? AND head=? AND file_path=?;";
+	"SELECT id FROM Files WHERE repo=? AND head=? AND file_path=? LIMIT 1;";
+	
+	public static final String selectChunkId = 
+	"SELECT id FROM Chunks WHERE file_id=? AND start=? AND end=? AND committer_id=? AND time=? LIMIT 1;";
+			
 	
 	public static final String selectCommittersByRepo =
 	"SELECT * FROM Committers WHERE repo=?;";
+	
 	
 
 	/*******************************************/
@@ -158,6 +150,9 @@ public class Statements {
 	
 	public static final String insertRecordLink = 
 	"REPLACE INTO RecordLinks VALUES (?,?);";
+	
+	public static final String deleteRecordLink = 
+	"DELETE FROM RecordLinks WHERE committer=?;";
 	
 	
 	/*******************************************/

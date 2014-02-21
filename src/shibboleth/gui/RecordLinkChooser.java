@@ -22,6 +22,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 
 import shibboleth.model.RecordLink;
+import shibboleth.model.UnknownUser;
 import shibboleth.model.User;
 
 /**
@@ -41,7 +42,7 @@ public class RecordLinkChooser extends JDialog implements ListSelectionListener,
 	private List<User> users;
 	
 	private JComboBox<User> combo;
-	private JButton alterButton, cancelButton, applyButton;
+	private JButton cancelButton, applyButton;
 	
 	private int userChoice = CANCELED;
 	
@@ -107,7 +108,7 @@ public class RecordLinkChooser extends JDialog implements ListSelectionListener,
 		super(null, Dialog.ModalityType.TOOLKIT_MODAL);
 		
 		this.users = users;
-		
+
 		// Set System L&F
 		try {
 			UIManager.setLookAndFeel(
@@ -133,6 +134,7 @@ public class RecordLinkChooser extends JDialog implements ListSelectionListener,
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setIconImage(Toolkit.getDefaultToolkit().getImage("icon.png"));
+		getRootPane().setDefaultButton(applyButton);
 		setVisible(true);
 	}
 	
@@ -147,13 +149,17 @@ public class RecordLinkChooser extends JDialog implements ListSelectionListener,
 		JPanel toolbar = new JPanel();
 		toolbar.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		
-		combo = new JComboBox<User>(users.toArray(new User[]{}));
-		combo.addItem(User.UNKNOWN_USER);
+		combo = new JComboBox<User>();
+		for(User u : users){
+			combo.addItem(u);
+			if(u==null){
+				System.out.println("null user");
+			}
+		}
+		combo.addItem(UnknownUser.getInstance());
+		combo.addActionListener(this);
 		toolbar.add(combo);
 		
-		alterButton = new JButton("✓");
-		alterButton.addActionListener(this);
-		toolbar.add(alterButton);
 		toolbar.add(new JLabel("         "));
 		
 		cancelButton = new JButton("Cancel");
@@ -179,7 +185,7 @@ public class RecordLinkChooser extends JDialog implements ListSelectionListener,
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if(e.getSource() == alterButton){
+		if(e.getSource() == combo){
 			int selectedIndex = combo.getSelectedIndex();
 			User selectedUser = combo.getItemAt(selectedIndex);
 			

@@ -14,6 +14,7 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.Key;
 
 import java.io.IOException;
+import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,7 +36,7 @@ import shibboleth.model.User;
  */
 public class GithubDataSource implements DataSource{
 	
-	private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
+	private static HttpTransport HTTP_TRANSPORT;
 	private static final JsonFactory JSON_FACTORY = new JacksonFactory();
 	
 	private RateLimitValue rateLimit;
@@ -46,6 +47,7 @@ public class GithubDataSource implements DataSource{
 	 * Construct a DataSource on top of the Github API without set an access token.
 	 */
 	public GithubDataSource(){
+		HTTP_TRANSPORT = new NetHttpTransport();
 		this.rateLimit=new RateLimitValue();
 		init();
 	}
@@ -53,9 +55,23 @@ public class GithubDataSource implements DataSource{
 	/**
 	 * Construct a DataSource on top of the Github API without set an access token.
 	 * Store rate limit values of the API in <tt>rateLimit</tt>.
-	 * @param rateLimit RateLimitValue object to store rate limit values in.
+	 * @param rateLimit RateLimitValue object to store rate limit values.
 	 */
 	public GithubDataSource(RateLimitValue rateLimit){
+		HTTP_TRANSPORT = new NetHttpTransport();
+		this.rateLimit=rateLimit;
+		init();
+	}
+	
+	/**
+	 * Construct a GithubDatasource with proxy settings
+	 * @param rateLimit RateLimitValue object to store rate limit values.
+	 * @param proxy Proxy to be used.
+	 */
+	public GithubDataSource(RateLimitValue rateLimit, Proxy proxy){
+		HTTP_TRANSPORT = new NetHttpTransport.Builder()
+			.setProxy(proxy)
+			.build();
 		this.rateLimit=rateLimit;
 		init();
 	}

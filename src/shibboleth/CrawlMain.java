@@ -65,21 +65,27 @@ public class CrawlMain extends Main {
 		addToExeAction(crawlExplode);
 		
 		System.out.println("Crawling mode.");
-		cli.messagePushed("Enter commands. Provide an empty string to quit.");
+		
+		cli.messagePushed("Enter commands. Provide 'q' to quit.");
 		Scanner scanner = new Scanner(System.in);
 		while(true){
-			String command = scanner.nextLine();
+			String command = scanner.nextLine().trim();
 			
 			if(command.equals("")){
+				// do nothing
+			}
+			else if (command.equals("q")){
 				close();
 				scanner.close();
 				System.exit(0);
 			}
 			else{
-				executor.doAction(command);
+				if(executor.doAction(command) == false){
+					System.out.println("Wrong syntax.");
+				}
+				System.out.println();
 			}
 		}
-
 	}
 	
 	public static void main(String[] args) {

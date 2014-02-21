@@ -39,7 +39,7 @@ public class GraphPanel extends JPanel{
         previewModel.getProperties().putValue(PreviewProperty.EDGE_CURVED, Boolean.FALSE);
         previewModel.getProperties().putValue(PreviewProperty.EDGE_OPACITY, 60);
         previewModel.getProperties().putValue(PreviewProperty.EDGE_RADIUS, 5f);
-        previewModel.getProperties().putValue(PreviewProperty.BACKGROUND_COLOR, new Color(50,20,20));
+        previewModel.getProperties().putValue(PreviewProperty.BACKGROUND_COLOR, new Color(48,10,36));
         previewModel.getProperties().putValue(PreviewProperty.EDGE_THICKNESS, new Float(1.0f));
         previewModel.getProperties().putValue(PreviewProperty.NODE_LABEL_PROPORTIONAL_SIZE, Boolean.FALSE);
         previewModel.getProperties().putValue(PreviewProperty.EDGE_COLOR, new EdgeColor(new Color(255, 255, 255)));

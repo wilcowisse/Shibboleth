@@ -43,10 +43,8 @@ public class HashMapStoreTest {
 		henk=new User();
 		henk.login="henk";
 		
-		simpleU1=new SimpleUser();
-		simpleU1.login="simpleU1";
-		simpleU2=new SimpleUser();
-		simpleU2.login="simpleU2";
+		simpleU1=new SimpleUser("simpleU1");
+		simpleU2=new SimpleUser("simpleU2");
 		
 		keesR1 = new Repo();
 		keesR1.full_name="kees/R1";

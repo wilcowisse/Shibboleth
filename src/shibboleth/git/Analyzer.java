@@ -2,6 +2,8 @@ package shibboleth.git;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
+
 import org.eclipse.jgit.api.BlameCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.blame.BlameResult;
@@ -115,7 +117,12 @@ public class Analyzer {
 	       
 	        
 	        repository.close();
-	        infoStore.writeToDB();
+	        
+	        try {
+				infoStore.writeToDB();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 	        
 		} catch (IOException | GitAPIException e) {
 			e.printStackTrace();

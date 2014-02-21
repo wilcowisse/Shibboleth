@@ -1,14 +1,9 @@
 package shibboleth.actions;
 
-import java.util.List;
-
 import shibboleth.data.DataSource;
-import shibboleth.data.sql.CommitInfoStore;
 import shibboleth.git.Analyzer;
 import shibboleth.git.Cloner;
 import shibboleth.git.Linker;
-import shibboleth.gui.RecordLinkChooser;
-import shibboleth.model.RecordLink;
 import shibboleth.model.Repo;
 
 /**
@@ -25,44 +20,30 @@ import shibboleth.model.Repo;
 public class CloneAction extends ShibbolethAction{
 	
 	private DataSource source;
-	private CommitInfoStore infoStore;
 	
-	public CloneAction(DataSource source, CommitInfoStore infoStore){
+	public CloneAction(DataSource source){
 		this.source=source;
-		this.infoStore=infoStore;
 	}
 	
 	@Override
 	public void execute(String[] args) {
 		if(args.length == 1){
-
 			listener.busyStateChanged(true);
-			
 			Repo repo = source.getRepo(args[0]);
 			
 			// clone
-			Cloner cloner = new Cloner("clones");
-			cloner.clone(repo);
-			
-			// analyze
-			Analyzer a = new Analyzer(repo.full_name, cloner.getClonePath(repo), infoStore);
-			a.analyze();
-			
-			//link
-			Linker linker = new Linker(repo.full_name, infoStore, source);
-			List<RecordLink> links = linker.link();
-			
-			int selectedAction = RecordLinkChooser.evaluateLinks(links, linker.getUsers());
-			
-			if(selectedAction == RecordLinkChooser.SAVED){
-				for(RecordLink link : links){
-					infoStore.insertRecordLink(link);
-				}
+			if(repo != null){
+				Cloner cloner = new Cloner("clones");
+				if(cloner.clone(repo)!=null)
+					listener.messagePushed("Cloned repo " + repo.full_name);
+				else
+					listener.messagePushed("Cloning failed!");
+			}
+			else{
+				listener.messagePushed("Repo not found on github!");
 			}
 			
 			listener.busyStateChanged(false);
-			listener.messagePushed("Cloned repo " + repo.full_name);
-			
 		}
 		
 	}

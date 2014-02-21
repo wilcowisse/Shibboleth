@@ -8,9 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import shibboleth.data.CachedStore;
 import shibboleth.data.CrawlSource;
-import shibboleth.data.DataSource;
 import shibboleth.data.RepoFilter;
 import shibboleth.data.TransparantFilter;
 import shibboleth.data.github.GithubDataSource;

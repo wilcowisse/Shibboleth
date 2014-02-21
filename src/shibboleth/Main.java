@@ -1,10 +1,19 @@
 package shibboleth;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.ProxySelector;
+import java.net.SocketAddress;
+import java.net.URI;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 
 import shibboleth.actions.ActionExecutor;
+import shibboleth.actions.AnalyzeAction;
 import shibboleth.actions.CloneAction;
 import shibboleth.actions.DeleteAction;
 import shibboleth.actions.ExeAction;
@@ -55,7 +64,8 @@ public abstract class Main{
 	public void initApp(Connection connection, GithubGraph graph){
 		this.connection = connection;
 		this.graph = graph;
-		initIO();
+		
+		initIO(Proxy.NO_PROXY);
 		
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 		    @Override
@@ -90,15 +100,17 @@ public abstract class Main{
 	}
 	
 	
-	public void initIO(){
+	public void initIO(Proxy proxy){
 		
 		// Commit info store
 		infoStore = new CommitInfoStore(connection);
 		
 		// Datasource: github api
 		rate = new RateLimitValue();
-		github = new GithubDataSource(rate);
-		github.setAccessToken(null);
+		//if(proxy == Proxy.NO_PROXY)
+			github = new GithubDataSource(rate);
+		//else
+		//	github = new GithubDataSource(rate, proxy);
 		
 		// Datastore: hashmap cache 
 		hashCache = new HashMapStore();
@@ -168,7 +180,12 @@ public abstract class Main{
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
-		new CloneAction(mysqlOnTopOfGithub, infoStore)
+		new CloneAction(mysqlOnTopOfGithub)
+			.addActionListener(listener)
+			.addExecutor(executor)
+			.addExecutor(exeAction);
+		
+		new AnalyzeAction(mysqlOnTopOfGithub, infoStore)
 			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
@@ -206,18 +223,66 @@ public abstract class Main{
 	}
 	
 	public static void main(String[] args){
-		if(args.length == 0){
+		String startupType = "gui";
+		Proxy proxy = Proxy.NO_PROXY;
+		
+		int i = 0; 
+		while(i<args.length){
+			String arg = args[i];
+			if(arg.equals("-cli")){
+				startupType = "cli";
+				i++;
+				continue;
+			}
+			else if(arg.equals("-gui")){
+				startupType = "gui";
+				i++;
+				continue;
+			}
+			else if(arg.equals("-crawl")){
+				startupType = "crawl";
+				i++;
+				continue;
+			}
+			else if(arg.equals("-proxy") && i+2 < args.length){
+				String host = args[i+1];
+				int port = Integer.parseInt(args[i+2]);
+				proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port));
+				i=i+3;
+			}
+			else{
+				System.out.println("Read token: " + arg);
+				System.out.println("Usage: java -jar Shibboleth.jar [-cli|-gui|-crawl] [-proxy host port]");
+				System.exit(0);
+			}
+		}
+		
+		if(!proxy.equals(Proxy.NO_PROXY)){
+			System.out.println("Using proxy " + proxy);
+			final Proxy proxy2 = proxy;
+			ProxySelector.setDefault(new ProxySelector() {
+				@Override
+				public List<Proxy> select(URI uri) {
+					return Arrays.asList(proxy2);
+				}
+				@Override
+				public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
+					ioe.printStackTrace();
+				}
+			});
+		}
+			
+		if(startupType.equals("gui")){
+			
 			new GuiMain();
 		}
-		else if(args.length>0 && args[0].equals("-cli")){
+		else if(startupType.equals("cli")){
 			new CliMain();
 		}
-		else if(args.length>0 && args[0].equals("-crawl")){
+		else if(startupType.equals("crawl")){
 			new CrawlMain();
 		}
-		else{
-			System.out.println("Usage: java -jar Shibboleth.jar [-cli]");
-		}
+		
 		
 	}
 	

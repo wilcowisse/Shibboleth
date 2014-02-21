@@ -14,6 +14,8 @@ import shibboleth.gui.RecordLinkChooser;
 import shibboleth.model.Committer;
 import shibboleth.model.Contribution;
 import shibboleth.model.RecordLink;
+import shibboleth.model.SimpleUser;
+import shibboleth.model.UnknownUser;
 import shibboleth.model.User;
 import shibboleth.winkler.JaroWinklerDistance;
 
@@ -48,29 +50,35 @@ public class Linker {
 	
 	/**
 	 * Link committers of this repository to Github users.
+	 * @param accuracy If similarity between user and committer is below this threshold, this committer is linked to the @link{UnknownUser}.
 	 * @return A list with recordlinks. The RecordLink similarity 
 	 * ({@link RecordLink#similarity}) is computed by means of the
 	 * Jaro Winkler distance.
 	 * @see <a href="http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html">
 	 * http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html</a>
 	 */
-	public List<RecordLink> link(){
-		
+	public List<RecordLink> link(double accuracy){
 		List<RecordLink> links = new ArrayList<RecordLink>();
 		try{
 			for(Committer committer : committers){
 				RecordLink bestLink = null;
 				for(User user : users){
-					double proximity = 0;
+					double similarity = 0;
 					if(user.name != null && committer.name != null)
-						proximity=Math.max(proximity, JaroWinklerDistance.JARO_WINKLER_DISTANCE.proximity(user.name, committer.name));
-					if(user.email != null && committer.email != null)
-						proximity=Math.max(proximity, JaroWinklerDistance.JARO_WINKLER_DISTANCE.proximity(user.email, committer.email));
-					proximity=Math.max(proximity, JaroWinklerDistance.JARO_WINKLER_DISTANCE.proximity(user.login, committer.name));
-					RecordLink link = new RecordLink(committer,user,proximity);
+						similarity=Math.max(similarity, JaroWinklerDistance.JARO_WINKLER_DISTANCE.proximity(user.name, committer.name));
+					if(user.email != null && committer.email != null){
+						String userEmailName = user.email.indexOf('@') == -1 ? user.email : user.email.substring(0,user.email.indexOf('@'));
+						String committerEmailName = committer.email.indexOf('@') == -1 ? committer.email : committer.email.substring(0,committer.email.indexOf('@'));
+						similarity=Math.max(similarity, JaroWinklerDistance.JARO_WINKLER_DISTANCE.proximity(userEmailName, committerEmailName));
+					}
+					similarity=Math.max(similarity, JaroWinklerDistance.JARO_WINKLER_DISTANCE.proximity(user.login, committer.name));
+					RecordLink link = new RecordLink(committer,user,similarity);
 					bestLink = bestOne(bestLink, link);
 				}
-				links.add(bestLink);
+				if(bestLink.similarity>=accuracy)
+					links.add(bestLink);
+				else
+					links.add(new RecordLink(committer, UnknownUser.getInstance(), bestLink.similarity));
 			}
 		} catch(Exception e){
 			e.printStackTrace();
@@ -110,28 +118,30 @@ public class Linker {
 	}
 	
 	public static void main(String[] args){
-		Connection connection = null;
-		try {
-			Class.forName("com.mysql.jdbc.Driver");
-			connection = DriverManager.getConnection("jdbc:mysql://localhost/shibboleth?user=root&password=pass");
-		} catch (SQLException | ClassNotFoundException e) {
-			e.printStackTrace();
-		}
+
 		
-		DataStore store = new SqlDataStore(connection);
-		CommitInfoStore infoStore = new CommitInfoStore(connection);
-		
-		Linker linker = new Linker("livingston/autoSize", infoStore, store);
-		List<RecordLink> links = linker.link();
-		
-		
-		int selectedAction = RecordLinkChooser.evaluateLinks(links, linker.getUsers());
-		
-		if(selectedAction == RecordLinkChooser.SAVED){
-			for(RecordLink link : links){
-				infoStore.insertRecordLink(link);
-			}
-		}
+//		Connection connection = null;
+//		try {
+//			Class.forName("com.mysql.jdbc.Driver");
+//			connection = DriverManager.getConnection("jdbc:mysql://localhost/shibboleth?user=root&password=pass");
+//		} catch (SQLException | ClassNotFoundException e) {
+//			e.printStackTrace();
+//		}
+//		
+//		DataStore store = new SqlDataStore(connection);
+//		CommitInfoStore infoStore = new CommitInfoStore(connection);
+//		
+//		Linker linker = new Linker("livingston/autoSize", infoStore, store);
+//		List<RecordLink> links = linker.link();
+//		
+//		
+//		int selectedAction = RecordLinkChooser.evaluateLinks(links, linker.getUsers());
+//		
+//		if(selectedAction == RecordLinkChooser.SAVED){
+//			for(RecordLink link : links){
+//				infoStore.insertRecordLink(link);
+//			}
+//		}
 	
 	}
 	

@@ -9,11 +9,6 @@ import com.google.api.client.util.Key;
  */
 public class User extends SimpleUser{
 	
-	/**
-	 * User constant for an unknown user.
-	 */
-	public static final UnknownUser UNKNOWN_USER = new UnknownUser();
-	
 	@Key
     public int id;
 	
@@ -71,5 +66,6 @@ public class User extends SimpleUser{
     		res+=" ("+email+")";
     	return res;
     }
+    
 
 }
