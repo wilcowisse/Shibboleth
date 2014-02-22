@@ -17,9 +17,12 @@ import java.io.IOException;
 import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import shibboleth.data.DataSource;
 import shibboleth.data.RepoFilter;
+import shibboleth.data.sql.CommitInfoStore;
 import shibboleth.model.Contribution;
 import shibboleth.model.ContributionInfo;
 import shibboleth.model.Repo;
@@ -43,6 +46,7 @@ public class GithubDataSource implements DataSource{
 	private HttpRequestFactory requestFactory;
 	private String accessToken = null;
 	
+	private Pattern linkHeaderPattern;
 	/**
 	 * Construct a DataSource on top of the Github API without set an access token.
 	 */
@@ -84,6 +88,8 @@ public class GithubDataSource implements DataSource{
 				request.setParser(new JsonObjectParser(JSON_FACTORY));
 			}
 		});
+		
+		linkHeaderPattern = Pattern.compile(".*<((?!>).*)>;\\s*rel=\"next\".*");
 	}
 	
 	/**
@@ -99,9 +105,9 @@ public class GithubDataSource implements DataSource{
 		@Key
 		public int per_page=100;
 		
-		public GithubUrl(String path){
-			super("https://api.github.com");
-			setRawPath(path);
+		
+		public GithubUrl(String url){
+			super(url);
 		}
 		
 		/**
@@ -128,8 +134,45 @@ public class GithubDataSource implements DataSource{
 		public int count;
 	}
 	
+	
+	public <T> List<T> doPaginatedRequest(GithubUrl url, Class<T> dataClass) throws IOException, HttpResponseException {
+		List<T> result = new ArrayList<T>();
+		boolean nextpage=true;
+		HttpRequest request = requestFactory.buildGetRequest(url);
+
+		while(nextpage){
+			nextpage=false;
+			request.getHeaders().set("Link",String.format("Link", "<%s>; rel=\"next\"", url.build()));
+			HttpResponse response = request.execute();
+		 	int limit=Integer.parseInt(response.getHeaders().getFirstHeaderStringValue("X-RateLimit-Limit"));
+		 	int remaining = Integer.parseInt(response.getHeaders().getFirstHeaderStringValue("X-RateLimit-Remaining"));
+		 	int reset = Integer.parseInt(response.getHeaders().getFirstHeaderStringValue("X-RateLimit-Reset"));
+		 	
+		 	rateLimit.set(RateLimitValue.LIMIT, limit)
+		 		.set(RateLimitValue.REMAINING, remaining)
+		 		.set(RateLimitValue.RESET, reset);
+		 	
+		 	T page = response.parseAs(dataClass);
+		 	result.add(page);
+		 	
+		 	if(response.getHeaders().containsKey("Link")){
+		 		String linkHeaderVal = response.getHeaders().getFirstHeaderStringValue("Link");
+		 		Matcher m = linkHeaderPattern.matcher(linkHeaderVal);
+				if (m.find()) {
+					request = requestFactory.buildGetRequest(new GithubUrl(m.group(1)));
+				    nextpage=true;
+				}
+
+		 	}
+			
+		}
+
+		return result;
+	}
+	
+	
 	/**
-	 * Does a http request to the Github REST API.
+	 * Do a http request to the Github REST API.
 	 * @param url URL description of the API location.
 	 * @param dataClass Data class type to be returned.
 	 * @return An instantiated object of the provided <tt>dataClass</tt>.
@@ -152,12 +195,15 @@ public class GithubDataSource implements DataSource{
 			throw new IOException("Github returned status code "+response.getStatusCode()
 					+ " " + response.getStatusMessage());
 		}
-		return response.parseAs(dataClass);
+		
+		T result = response.parseAs(dataClass);
+		response.disconnect();
+		return result;
 	}
 	
 	@Override
 	public Repo getRepo(String fullRepoName){
-		GithubUrl url = new GithubUrl("/repos/"+fullRepoName)
+		GithubUrl url = new GithubUrl("https://api.github.com/repos/"+fullRepoName)
 			.withAccessToken(accessToken);
 		Repo repo = null;
 		try{
@@ -172,7 +218,7 @@ public class GithubDataSource implements DataSource{
 	
 	@Override
 	public User getUser(String userName) {
-		GithubUrl url = new GithubUrl("/users/"+userName)
+		GithubUrl url = new GithubUrl("https://api.github.com/users/"+userName)
 			.withAccessToken(accessToken);
 		User user = null;
 		try{
@@ -188,7 +234,7 @@ public class GithubDataSource implements DataSource{
 	@Override
 	public Repo[] getRepos(String user, RepoFilter filter, boolean ensureAll) {
 		if(ensureAll){
-			GithubUrl url = new GithubUrl("/users/"+user+"/repos")
+			GithubUrl url = new GithubUrl("https://api.github.com/users/"+user+"/repos")
 				.withAccessToken(accessToken);
 			Repo[] repos = null;
 			try {
@@ -217,7 +263,7 @@ public class GithubDataSource implements DataSource{
 	
 	@Override
 	public Contribution[] getContributions(String fullRepoName, boolean ensureAll){
-		GithubUrl url = new GithubUrl("/repos/"+fullRepoName+"/contributors")
+		GithubUrl url = new GithubUrl("https://api.github.com/repos/"+fullRepoName+"/contributors")
 			.withAccessToken(accessToken);
 		
 		RESTContribution[] rContributions = null;
@@ -268,7 +314,7 @@ public class GithubDataSource implements DataSource{
 	
 	
 	public Repo[] getForks(String fullRepoName){
-		GithubUrl url = new GithubUrl("/repos/"+fullRepoName+"/forks")
+		GithubUrl url = new GithubUrl("https://api.github.com/repos/"+fullRepoName+"/forks")
 			.withAccessToken(accessToken);
 		Repo[] forks = null;
 		try {
@@ -293,7 +339,25 @@ public class GithubDataSource implements DataSource{
 
 	// manual testing
 	public static void main(String[] args){
-		RateLimitValue v = new RateLimitValue();
+		
+		// <url>; rel="next"
+		String pattern = ".*<((?!>).*)>;\\s*rel=\"next\".*";
+		
+		String link = "<url>; rel=\"next\"";
+		link = "<https://api.github.com/user/89353/repos?per_page=3&page=2>; rel=\"next\", <https://api.github.com/user/89353/repos?per_page=3&page=82>; rel=\"last\"";
+		link = "<https://api.github.com/user/89353/repos?per_page=3&page=82>; rel=\"last\", <https://api.github.com/user/89353/repos?per_page=3&page=3>; rel=\"next\", <https://api.github.com/user/89353/repos?per_page=3&page=1>; rel=\"first\", <https://api.github.com/user/89353/repos?per_page=3&page=1>; rel=\"prev\"";
+		link = "<https://api.github.com/user/89353/repos?per_page=3&page=82>; rel=\"last\", <https://api.github.com/user/89353/repos?per_page=3&page=1>; rel=\"first\", <https://api.github.com/user/89353/repos?per_page=3&page=1>; rel=\"prev\"";
+
+		Pattern linkHeaderPattern = Pattern.compile(".*<((?!>).*)>;\\s*rel=\"next\".*");
+		Matcher m = linkHeaderPattern.matcher(link);
+		if (m.find()) {
+		    System.out.println(m.group(1));
+		}
+		else{
+			System.out.println("not found");
+		}
+		
+		//RateLimitValue v = new RateLimitValue();
 		
 //		Repo[] res = new GithubREST(v).getRepos("livingston");
 //		System.out.println(Arrays.toString(res));	
@@ -307,7 +371,7 @@ public class GithubDataSource implements DataSource{
 //		Repo[] res = new GithubREST(v).getForks("livingston/autoSize");
 //		System.out.println(Arrays.toString(res));
 		
-		System.out.println(v);
+		//System.out.println(v);
 	}
 
 	

@@ -149,8 +149,12 @@ public class ExplodeAction extends ShibbolethAction{
 			String[] res = new String[cs.length];
 			for(int i=0; i<cs.length; i++){
 				Contribution c = cs[i];
-				if(!explodedContributions.contains(c))
+				int index = explodedContributions.indexOf(c);
+				if(index == -1)
 					explodedContributions.add(c);
+				else if(c.hasContributionInfo()){
+					explodedContributions.get(index).setContributionInfo(c.getContributionInfo());
+				}
 				res[i] = c.getUser().login;
 			}
 			return res;
