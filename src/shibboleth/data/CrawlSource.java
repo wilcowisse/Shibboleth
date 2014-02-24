@@ -2,6 +2,7 @@ package shibboleth.data;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -60,15 +61,15 @@ public class CrawlSource implements DataSource{
 	}
 
 	@Override
-	public Repo[] getRepos(String user, RepoFilter filter, boolean ensureAll) {
+	public List<Repo> getRepos(String user, RepoFilter filter, boolean ensureAll) {
 		if(!ensureAll || storedAllReposForUser.contains(user)){
-			Repo[] result = mysql.getRepos(user, filter, ensureAll);
+			List<Repo> result = mysql.getRepos(user, filter, ensureAll);
 			return result;
 		}
 		else{
-			Repo[] repos = github.getRepos(user, filter, ensureAll);
+			List<Repo> repos = github.getRepos(user, filter, ensureAll);
 			
-			Contribution[] cs = GithubUtil.reposToContributions(repos, GithubUtil.createUser(user));
+			List<Contribution> cs = GithubUtil.reposToContributions(repos, GithubUtil.createUser(user));
 			this.storeNewContributions(cs);
 			for(Repo r : repos){
 				mysql.storeRepo(r);
@@ -81,14 +82,14 @@ public class CrawlSource implements DataSource{
 	}
 	
 	@Override
-	public Contribution[] getContributions(String repo, boolean ensureAll) {
+	public List<Contribution> getContributions(String repo, boolean ensureAll) {
 		
 		if(!ensureAll || storedAllContributionsForRepo.contains(repo)) {
-			Contribution[] result = mysql.getContributions(repo, ensureAll);
+			List<Contribution> result = mysql.getContributions(repo, ensureAll);
 			return result;
 		}
 		else{
-			Contribution[] result = github.getContributions(repo, ensureAll);
+			List<Contribution> result = github.getContributions(repo, ensureAll);
 			storeNewContributions(result);
 			
 			mysql.storedAllContributionsForRepo(repo, true);
@@ -101,7 +102,7 @@ public class CrawlSource implements DataSource{
 	 * Stores the contributions which are not already in the db.
 	 * @param cs The contributions.
 	 */
-	public void storeNewContributions(Contribution[] cs){
+	public void storeNewContributions(List<Contribution> cs){
 		for(Contribution c : cs){
 			Tuple t = storedContributions.get(c);
 			if(t == null){
@@ -123,7 +124,7 @@ public class CrawlSource implements DataSource{
 	}
 
 	@Override
-	public Contribution[] getAllContributions() {
+	public List<Contribution> getAllContributions() {
 		return mysql.getAllContributions();
 	}
 	

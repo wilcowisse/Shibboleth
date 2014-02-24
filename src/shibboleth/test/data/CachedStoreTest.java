@@ -1,6 +1,10 @@
 package shibboleth.test.data;
 
 import static org.mockito.Mockito.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 //import static org.mockito.Matchers.*;
 
 import org.junit.Before;
@@ -73,7 +77,7 @@ public class CachedStoreTest {
 
 	@Test
 	public void testStoreContributions() {
-		Contribution[] cs = {c1,c2};
+		List<Contribution> cs = Arrays.asList(new Contribution[]{c1, c2});
 		store.storeNewContributions(cs);
 		verify(cache).storeNewContributions(cs);
 		verifyZeroInteractions(source);
@@ -160,7 +164,7 @@ public class CachedStoreTest {
 	
 	@Test
 	public void testGetContributions() {
-		Contribution[] mockResult = {c1, c2};
+		List<Contribution> mockResult = Arrays.asList(new Contribution[]{c1, c2});
 		when(cache.getContributions("repo", false)).thenReturn(mockResult);
 		
 		store.getContributions("repo", false);
@@ -171,7 +175,7 @@ public class CachedStoreTest {
 	
 	@Test
 	public void testGetContributionsFromCache() {
-		Contribution[] mockResult = {c1, c2};
+		List<Contribution> mockResult = Arrays.asList(new Contribution[]{c1, c2});
 		when(cache.getContributions("repo", true)).thenReturn(mockResult);
 		
 		store.getContributions("repo", true);
@@ -182,7 +186,7 @@ public class CachedStoreTest {
 	
 	@Test
 	public void testGetContributionsFromSource() {
-		Contribution[] mockResult = {c1, c2};
+		List<Contribution> mockResult = Arrays.asList(new Contribution[]{c1, c2});
 		when(cache.getContributions("repo", true)).thenReturn(null);
 		when(source.getContributions("repo", true)).thenReturn(mockResult);
 		
@@ -197,10 +201,10 @@ public class CachedStoreTest {
 
 	@Test
 	public void testGetRepos() {
-		Repo[] mockResult = {repo1, repo2};
+		List<Repo> mockResult = Arrays.asList(new Repo[]{repo1, repo2});
 		when(cache.getRepos(eq("user1"), any(RepoFilter.class), eq(false)))
 		.thenReturn(mockResult)
-		.thenReturn(new Repo[]{});
+		.thenReturn(new ArrayList<Repo>());
 		
 		store.getRepos("user1", new TransparantFilter(), false);
 		store.getRepos("user1", new TransparantFilter(), false);
@@ -211,7 +215,7 @@ public class CachedStoreTest {
 	
 	@Test
 	public void testGetReposFromCache() {
-		Repo[] mockResult = {repo1, repo2};
+		List<Repo> mockResult = Arrays.asList(new Repo[]{repo1, repo2});
 		when(cache.getRepos(eq("user1"), any(RepoFilter.class), eq(true)))
 		.thenReturn(mockResult);
 		
@@ -223,7 +227,9 @@ public class CachedStoreTest {
 	
 	@Test
 	public void testGetReposFromSource() {
-		Repo[] mockResult = {repo1, repo2};
+		Repo[] mockResultA = {repo1, repo2};
+		List<Repo> mockResult = Arrays.asList(mockResultA);
+		
 		when(cache.getRepos(eq("user1"), any(RepoFilter.class), eq(true)))
 		.thenReturn(null);
 		when(source.getRepos(eq("user1"), any(RepoFilter.class), eq(true)))

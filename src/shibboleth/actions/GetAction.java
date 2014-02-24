@@ -1,5 +1,7 @@
 package shibboleth.actions;
 
+import java.util.List;
+
 import shibboleth.data.DataSource;
 import shibboleth.data.JavaScriptFilter;
 import shibboleth.data.RepoFilter;
@@ -83,7 +85,7 @@ public class GetAction extends ShibbolethAction{
 			String argument = args[1];
 			if(argument.indexOf('/')!=-1){
 				Repo repo = source.getRepo(argument);
-				Contribution[] cs = source.getContributions(repo.full_name, false);
+				List<Contribution> cs = source.getContributions(repo.full_name, false);
 				for(Contribution c : cs)
 					source.getUser(c.getUser().login);
 			}
@@ -94,7 +96,7 @@ public class GetAction extends ShibbolethAction{
 	}
 	
 	public void requestAllContributions(){
-		Contribution[] cs = source.getAllContributions();
+		List<Contribution> cs = source.getAllContributions();
 		for(Contribution c : cs)
 			graph.addContribution(c);
 		
@@ -103,13 +105,13 @@ public class GetAction extends ShibbolethAction{
 	
 	public void requestContributions(SimpleUser u, RepoFilter filter, boolean ensureAll){
 		if(u != null){
-			Repo[] rs = source.getRepos(u.login, filter, ensureAll);
+			List<Repo> rs = source.getRepos(u.login, filter, ensureAll);
 			
 			for(Contribution c : GithubUtil.reposToContributions(rs, u)){
 				graph.addContribution(c);
 			}
 			
-			listener.graphChanged("Added " + rs.length +" contributions of "+u.login, false);
+			listener.graphChanged("Added " + rs.size() +" contributions of "+u.login, false);
 			
 		}
 		else{
@@ -126,11 +128,11 @@ public class GetAction extends ShibbolethAction{
 	
 	public void requestContributions(SimpleRepo r, boolean ensureAll){
 		if(r != null){
-			Contribution[] cs = source.getContributions(r.full_name, ensureAll);
+			List<Contribution> cs = source.getContributions(r.full_name, ensureAll);
 			for(Contribution c : cs)
 				graph.addContribution(c);
 			
-			listener.graphChanged("Added " + cs.length +" contributions for "+r.full_name, false);
+			listener.graphChanged("Added " + cs.size() +" contributions for "+r.full_name, false);
 			
 		}
 		else{

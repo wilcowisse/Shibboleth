@@ -1,5 +1,7 @@
 package shibboleth.data;
 
+import java.util.List;
+
 import shibboleth.model.Contribution;
 import shibboleth.model.Repo;
 import shibboleth.model.User;
@@ -20,6 +22,7 @@ public class ReadOnlyCachedSource implements DataSource {
 		this.source=source;
 	}
 	
+	@Override
 	public User getUser(String login){
 		User u = cache.getUser(login);
 		if(u == null){ // cache miss
@@ -28,14 +31,16 @@ public class ReadOnlyCachedSource implements DataSource {
 		return u;
 	}
 	
-	public Contribution[] getContributions(String reponame, boolean ensureAll){
-		Contribution[] cs = cache.getContributions(reponame, ensureAll);
+	@Override
+	public List<Contribution> getContributions(String reponame, boolean ensureAll){
+		List<Contribution> cs = cache.getContributions(reponame, ensureAll);
 		if(cs == null){ // cache miss
 			cs = source.getContributions(reponame, ensureAll);
 		}
 		return cs;
 	}
 	
+	@Override
 	public Repo getRepo(String reponame) {
 		Repo r = cache.getRepo(reponame);
 		if(r == null){ // cache miss
@@ -44,8 +49,9 @@ public class ReadOnlyCachedSource implements DataSource {
 		return r;
 	}
 	
-	public Repo[] getRepos(String username, RepoFilter filter, boolean ensureAll){
-		Repo[] rs = cache.getRepos(username, filter, ensureAll);
+	@Override
+	public List<Repo> getRepos(String username, RepoFilter filter, boolean ensureAll){
+		List<Repo>  rs = cache.getRepos(username, filter, ensureAll);
 		if(rs == null){ // cache miss
 			rs = source.getRepos(username, filter, ensureAll);
 		}
@@ -73,7 +79,7 @@ public class ReadOnlyCachedSource implements DataSource {
 //	}
 
 	@Override
-	public Contribution[] getAllContributions() {
+	public List<Contribution> getAllContributions() {
 		return cache.getAllContributions();
 	}
 

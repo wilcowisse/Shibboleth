@@ -1,5 +1,7 @@
 package shibboleth.data;
 
+import java.util.List;
+
 import shibboleth.model.Contribution;
 import shibboleth.model.Repo;
 import shibboleth.model.User;
@@ -55,8 +57,8 @@ public class CachedSource implements DataSource {
 	}
 	
 	@Override
-	public Contribution[] getContributions(String reponame, boolean ensureAll){
-		Contribution[] cs = cache.getContributions(reponame, ensureAll);
+	public List<Contribution> getContributions(String reponame, boolean ensureAll){
+		List<Contribution> cs = cache.getContributions(reponame, ensureAll);
 		if(cs == null){ // cache miss
 			cs = source.getContributions(reponame, ensureAll);
 			if(cs != null){
@@ -69,12 +71,12 @@ public class CachedSource implements DataSource {
 	}
 	
 	@Override
-	public Repo[] getRepos(String username, RepoFilter filter, boolean ensureAll){
-		Repo[] rs = cache.getRepos(username, filter, ensureAll);
+	public List<Repo> getRepos(String username, RepoFilter filter, boolean ensureAll){
+		List<Repo> rs = cache.getRepos(username, filter, ensureAll);
 		if(rs == null){ // cache miss
 			rs = source.getRepos(username, filter, ensureAll);
 			if(rs != null) {
-				Contribution[] cs = GithubUtil.reposToContributions(rs, GithubUtil.createUser(username));
+				List<Contribution> cs = GithubUtil.reposToContributions(rs, GithubUtil.createUser(username));
 				cache.storeNewContributions(cs);
 				
 				for(Repo r : rs){
@@ -111,7 +113,7 @@ public class CachedSource implements DataSource {
 	 * @return All contributions in the cache. Not all contribution in the source!
 	 */
 	@Override
-	public Contribution[] getAllContributions() {
+	public List<Contribution> getAllContributions() {
 		return cache.getAllContributions();
 	}
 

@@ -16,12 +16,14 @@ import com.google.api.client.util.Key;
 import java.io.IOException;
 import java.net.Proxy;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import shibboleth.data.DataSource;
 import shibboleth.data.RepoFilter;
+import shibboleth.data.TransparantFilter;
 import shibboleth.data.sql.CommitInfoStore;
 import shibboleth.model.Contribution;
 import shibboleth.model.ContributionInfo;
@@ -232,7 +234,7 @@ public class GithubDataSource implements DataSource{
 	}
 	
 	@Override
-	public Repo[] getRepos(String user, RepoFilter filter, boolean ensureAll) {
+	public List<Repo> getRepos(String user, RepoFilter filter, boolean ensureAll) {
 		if(ensureAll){
 			GithubUrl url = new GithubUrl("https://api.github.com/users/"+user+"/repos")
 				.withAccessToken(accessToken);
@@ -246,7 +248,7 @@ public class GithubDataSource implements DataSource{
 			}
 			
 			if(repos == null){
-				return new Repo[]{};	
+				return new ArrayList<Repo>();	
 			}
 			
 			List<Repo> repoList = new ArrayList<Repo>();
@@ -254,6 +256,37 @@ public class GithubDataSource implements DataSource{
 				if(filter.accepts(r))
 					repoList.add(r);
 			}
+			return repoList;
+		}
+		else{
+			return new ArrayList<Repo>();	
+		}
+	}
+	
+	
+	//@Override
+	public Repo[] getRepos2(String user, RepoFilter filter, boolean ensureAll) {
+		if(ensureAll){
+			GithubUrl url = new GithubUrl("https://api.github.com/users/"+user+"/repos")
+				.withAccessToken(accessToken);
+			List<Repo[]> repos = null;
+			try {
+				repos = doPaginatedRequest(url, Repo[].class);
+			}catch(HttpResponseException e){
+				System.out.println(e.getMessage());
+			}catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+			if(repos == null){
+				return new Repo[]{};	
+			}
+			
+			List<Repo> repoList = new ArrayList<Repo>();
+//			for(Repo r : repos){
+//				if(filter.accepts(r))
+//					repoList.add(r);
+//			}
 			return repoList.toArray(new Repo[]{});
 		}
 		else{
@@ -262,7 +295,7 @@ public class GithubDataSource implements DataSource{
 	}
 	
 	@Override
-	public Contribution[] getContributions(String fullRepoName, boolean ensureAll){
+	public List<Contribution> getContributions(String fullRepoName, boolean ensureAll){
 		GithubUrl url = new GithubUrl("https://api.github.com/repos/"+fullRepoName+"/contributors")
 			.withAccessToken(accessToken);
 		
@@ -279,10 +312,9 @@ public class GithubDataSource implements DataSource{
 		}
 		
 		if(rContributions==null){
-			return new Contribution[]{};
+			return new ArrayList<Contribution>();
 		}
 		
-		//TODO: implement pagination!
 		if(rContributions.length == 100){
 			System.err.println("WARNING: full page returned in getContributions for repo "+fullRepoName);
 		}
@@ -292,24 +324,23 @@ public class GithubDataSource implements DataSource{
 			totalContributionCount += r.count;
 		}
 		
-		Contribution[] contributions= new Contribution[rContributions.length];
-		for(int i = 0; i<rContributions.length; i++){
-			RESTContribution rc = rContributions[i];
+		List<Contribution> contributions= new ArrayList<Contribution>(rContributions.length);
+		for(RESTContribution rc : rContributions){
 			SimpleUser u = new SimpleUser(rc.login);
 			SimpleRepo r = new SimpleRepo(fullRepoName);
 			Contribution c = new Contribution(u, r);
 			
 			ContributionInfo info = new ContributionInfo(rc.count, (int)((float)rc.count/(float)totalContributionCount * 100f));
 			c.setContributionInfo(info);
-			contributions[i] = c;
+			contributions.add(c);
 		}
 		
 		return contributions;
 	}
 	
 	@Override
-	public Contribution[] getAllContributions() {
-		return new Contribution[]{};
+	public List<Contribution> getAllContributions() {
+		return new ArrayList<Contribution>();
 	}
 	
 	
@@ -340,22 +371,28 @@ public class GithubDataSource implements DataSource{
 	// manual testing
 	public static void main(String[] args){
 		
-		// <url>; rel="next"
-		String pattern = ".*<((?!>).*)>;\\s*rel=\"next\".*";
+		RateLimitValue v = new RateLimitValue();
+		//Repo[] res = new GithubDataSource(v).getRepos("creationix", new TransparantFilter(), true);
+		//List<Repo[]> res = 
 		
-		String link = "<url>; rel=\"next\"";
-		link = "<https://api.github.com/user/89353/repos?per_page=3&page=2>; rel=\"next\", <https://api.github.com/user/89353/repos?per_page=3&page=82>; rel=\"last\"";
-		link = "<https://api.github.com/user/89353/repos?per_page=3&page=82>; rel=\"last\", <https://api.github.com/user/89353/repos?per_page=3&page=3>; rel=\"next\", <https://api.github.com/user/89353/repos?per_page=3&page=1>; rel=\"first\", <https://api.github.com/user/89353/repos?per_page=3&page=1>; rel=\"prev\"";
-		link = "<https://api.github.com/user/89353/repos?per_page=3&page=82>; rel=\"last\", <https://api.github.com/user/89353/repos?per_page=3&page=1>; rel=\"first\", <https://api.github.com/user/89353/repos?per_page=3&page=1>; rel=\"prev\"";
-
-		Pattern linkHeaderPattern = Pattern.compile(".*<((?!>).*)>;\\s*rel=\"next\".*");
-		Matcher m = linkHeaderPattern.matcher(link);
-		if (m.find()) {
-		    System.out.println(m.group(1));
-		}
-		else{
-			System.out.println("not found");
-		}
+		//System.out.println(Arrays.toString(res));	
+		
+//		// <url>; rel="next"
+//		String pattern = ".*<((?!>).*)>;\\s*rel=\"next\".*";
+//		
+//		String link = "<url>; rel=\"next\"";
+//		link = "<https://api.github.com/user/89353/repos?per_page=3&page=2>; rel=\"next\", <https://api.github.com/user/89353/repos?per_page=3&page=82>; rel=\"last\"";
+//		link = "<https://api.github.com/user/89353/repos?per_page=3&page=82>; rel=\"last\", <https://api.github.com/user/89353/repos?per_page=3&page=3>; rel=\"next\", <https://api.github.com/user/89353/repos?per_page=3&page=1>; rel=\"first\", <https://api.github.com/user/89353/repos?per_page=3&page=1>; rel=\"prev\"";
+//		link = "<https://api.github.com/user/89353/repos?per_page=3&page=82>; rel=\"last\", <https://api.github.com/user/89353/repos?per_page=3&page=1>; rel=\"first\", <https://api.github.com/user/89353/repos?per_page=3&page=1>; rel=\"prev\"";
+//
+//		Pattern linkHeaderPattern = Pattern.compile(".*<((?!>).*)>;\\s*rel=\"next\".*");
+//		Matcher m = linkHeaderPattern.matcher(link);
+//		if (m.find()) {
+//		    System.out.println(m.group(1));
+//		}
+//		else{
+//			System.out.println("not found");
+//		}
 		
 		//RateLimitValue v = new RateLimitValue();
 		

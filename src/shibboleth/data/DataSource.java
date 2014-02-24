@@ -1,5 +1,7 @@
 package shibboleth.data;
 
+import java.util.List;
+
 import shibboleth.model.Contribution;
 import shibboleth.model.Repo;
 import shibboleth.model.User;
@@ -44,7 +46,7 @@ public interface DataSource {
 	 * @return 	The repos of the user, <tt>null</tt> if we cannot ensure that the
 	 * entire set of repos which the user owns will be returned.
 	 */
-	public Repo[] getRepos(String user, RepoFilter filter, boolean ensureAll);
+	public List<Repo> getRepos(String user, RepoFilter filter, boolean ensureAll);
 	
 	/**
 	 * Retrieve all Contributions for a repo.
@@ -54,12 +56,12 @@ public interface DataSource {
 	 * {@link #getUser(String) getUser} method.
 	 * @return The contributions for the given repo.
 	 */
-	public Contribution[] getContributions(String repo, boolean ensureAll);
+	public List<Contribution> getContributions(String repo, boolean ensureAll);
 	
 	/**
 	 * @return All contributions this source contains.
 	 */
-	public Contribution[] getAllContributions();
+	public List<Contribution> getAllContributions();
 	
 //	/**
 //	 * Whether the source contains the given contribution.

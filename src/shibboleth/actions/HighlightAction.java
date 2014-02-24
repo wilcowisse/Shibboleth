@@ -1,6 +1,7 @@
 package shibboleth.actions;
 
 import java.awt.Color;
+import java.util.List;
 
 import shibboleth.data.DataSource;
 import shibboleth.data.TransparantFilter;
@@ -31,13 +32,13 @@ public class HighlightAction extends ShibbolethAction {
 			String node = args[1];
 
 			if(GithubUtil.isRepoName(node)){
-				Contribution[] cs = source.getContributions(node, false);
+				List<Contribution> cs = source.getContributions(node, false);
 				for(SimpleUser user : GithubUtil.contributionsToUsers(cs)){
 					graph.setColor(user.login, Color.YELLOW);
 				}
 			}
 			else{
-				Repo[] rs = source.getRepos(node, new TransparantFilter(), false);
+				List<Repo> rs = source.getRepos(node, new TransparantFilter(), false);
 				for(Repo r : rs){
 					graph.setColor(r.full_name, Color.YELLOW);
 				}

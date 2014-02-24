@@ -106,7 +106,7 @@ public class Linker {
 	
 	private List<User> getUsers(DataSource source) throws Exception{
 		List<User> users = new ArrayList<User>();
-		Contribution[] contributions = source.getContributions(repo, false);
+		List<Contribution> contributions = source.getContributions(repo, false);
 		for(Contribution c : contributions){
 			User user = source.getUser(c.getUser().login);
 			if(user != null)

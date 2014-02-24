@@ -1,5 +1,7 @@
 package shibboleth.data;
 
+import java.util.List;
+
 import shibboleth.model.Contribution;
 import shibboleth.model.Repo;
 import shibboleth.model.User;
@@ -35,7 +37,7 @@ public interface DataStore extends DataSource{
 	 * do not exist in this store.
 	 * @param cs an array with contributions to be stored.
 	 */
-	public void storeNewContributions(Contribution[] cs);
+	public void storeNewContributions(List<Contribution> cs);
 	
 	/**
 	 * Remove all repos with the given repo name.

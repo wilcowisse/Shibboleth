@@ -42,7 +42,7 @@ public class HashMapStore implements DataStore{
 	}
 	
 	@Override
-	public Contribution[] getContributions(String reponame, boolean ensureAll){
+	public List<Contribution> getContributions(String reponame, boolean ensureAll){
 		if(!ensureAll || storedAllContributionsForRepo.contains(reponame)){
 			List<Contribution> result = new ArrayList<Contribution>();
 			for(Contribution c: contributions){
@@ -50,7 +50,7 @@ public class HashMapStore implements DataStore{
 					result.add(c);
 				}
 			}
-			return result.toArray(new Contribution[]{});
+			return result;
 		}
 		else{
 			return null;
@@ -64,7 +64,7 @@ public class HashMapStore implements DataStore{
 	}
 	
 	@Override
-	public Repo[] getRepos(String username, RepoFilter filter, boolean ensureAll){
+	public List<Repo> getRepos(String username, RepoFilter filter, boolean ensureAll){
 		if(!ensureAll || storedAllReposForUser.contains(username)){
 			List<Repo> result = new ArrayList<Repo>();
 			for(Contribution c: contributions){
@@ -75,7 +75,7 @@ public class HashMapStore implements DataStore{
 						result.add(r);
 				}
 			}
-			return result.toArray(new Repo[]{});
+			return result;
 		}
 		else{
 			return null;
@@ -139,7 +139,7 @@ public class HashMapStore implements DataStore{
 	}
 	
 	@Override
-	public void storeNewContributions(Contribution[] cs) {
+	public void storeNewContributions(List<Contribution> cs) {
 		for(Contribution c : cs){
 			boolean containContribution = contributions.contains(c);
 			if(!containContribution)
@@ -199,9 +199,8 @@ public class HashMapStore implements DataStore{
 	}
 
 	@Override
-	public Contribution[] getAllContributions() {
-		return contributions.toArray(new Contribution[]{});
-		
+	public List<Contribution> getAllContributions() {
+		return contributions;
 	}
 	
 //	private Contribution getContribution(String repo, String user){
@@ -254,7 +253,6 @@ public class HashMapStore implements DataStore{
 		//Contribution[] reposOfJan = store.getRepoContributions("testrepo", true);
 		
 		store.storedAllContributionsByUser("testuser", false);
-		System.out.println(Arrays.toString(store.getRepos("testuser", new TransparantFilter(), true)));
 		
 //		if(reposOfJan != null){
 //			for(Contribution con : reposOfJan){

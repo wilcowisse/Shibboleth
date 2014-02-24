@@ -1,5 +1,8 @@
 package shibboleth.actions;
 
+import java.util.Collections;
+import java.util.List;
+
 import shibboleth.data.DataSource;
 import shibboleth.data.JavaScriptFilter;
 import shibboleth.data.RepoFilter;
@@ -110,11 +113,11 @@ public class GetInfoAction extends ShibbolethAction{
 	}
 	
 	private void requestUserExpand(String userName, RepoFilter filter, boolean ensureAll){
-		Repo[] reposByUser = source.getRepos(userName, filter, ensureAll);
+		List<Repo>  reposByUser = source.getRepos(userName, filter, ensureAll);
 		
 		if(reposByUser!=null){
 			String message = "Repos "+userName+" contributed to:";
-			listener.messagePushed(message, reposByUser);
+			listener.messagePushed(message, reposByUser.toArray());
 		}
 		else{
 			try {
@@ -126,12 +129,12 @@ public class GetInfoAction extends ShibbolethAction{
 	}
 	
 	private void requestRepoExpand(String repoName, boolean ensureAll){
-		Contribution[] contributions = source.getContributions(repoName, ensureAll);
+		List<Contribution> contributions = source.getContributions(repoName, ensureAll);
 		
 		if(contributions!=null){
 			String message = "Contributions to "+repoName+":";
 			if(listener != null)
-				listener.messagePushed(message, contributions);
+				listener.messagePushed(message, contributions.toArray());
 		}
 		else{
 			try {

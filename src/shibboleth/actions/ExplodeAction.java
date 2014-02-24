@@ -133,11 +133,11 @@ public class ExplodeAction extends ShibbolethAction{
 	
 	public String[] getChildren(String node){
 		if(GithubUtil.isUserName(node)){
-			Repo[] reposByUser = source.getRepos(node, filter, ensureAll);
-			Contribution[] cs = GithubUtil.reposToContributions(reposByUser, GithubUtil.createUser(node));
-			String[] res = new String[cs.length];
-			for(int i=0; i<cs.length; i++){
-				Contribution c = cs[i];
+			List<Repo>  reposByUser = source.getRepos(node, filter, ensureAll);
+			List<Contribution> cs = GithubUtil.reposToContributions(reposByUser, GithubUtil.createUser(node));
+			String[] res = new String[cs.size()];
+			for(int i=0; i<cs.size(); i++){
+				Contribution c = cs.get(i);
 				if(!explodedContributions.contains(c))
 					explodedContributions.add(c);
 				res[i] = c.getRepo().full_name;
@@ -145,10 +145,10 @@ public class ExplodeAction extends ShibbolethAction{
 			return res;
 		}
 		else{
-			Contribution[] cs = source.getContributions(node, ensureAll);
-			String[] res = new String[cs.length];
-			for(int i=0; i<cs.length; i++){
-				Contribution c = cs[i];
+			List<Contribution> cs = source.getContributions(node, ensureAll);
+			String[] res = new String[cs.size()];
+			for(int i=0; i<cs.size(); i++){
+				Contribution c = cs.get(i);
 				int index = explodedContributions.indexOf(c);
 				if(index == -1)
 					explodedContributions.add(c);

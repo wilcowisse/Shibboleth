@@ -1,5 +1,8 @@
 package shibboleth.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import shibboleth.model.Contribution;
 import shibboleth.model.Repo;
 import shibboleth.model.SimpleRepo;
@@ -30,25 +33,25 @@ public class GithubUtil {
 	 * @return An array with contributions for the repos in <tt>rs</tt>
 	 * and an empty array if <tt>rs==null</tt>.
 	 */
-	public static Contribution[] reposToContributions(Repo[] rs, SimpleUser user){
-		Contribution[] res = null;
+	public static List<Contribution> reposToContributions(List<Repo> rs, SimpleUser user){
+		List<Contribution> res = null;
 		if(rs != null){
-			res = new Contribution[rs.length];
-			for(int i=0;i<rs.length;i++){
-				res[i] = new Contribution(user, rs[i]);
+			res = new ArrayList<Contribution>(rs.size());
+			for(Repo r : rs){
+				res.add(new Contribution(user, r));
 			}
 		}
 		else{
-			res=new Contribution[]{};
+			res=new ArrayList<Contribution>();
 		}
 		
 		return res;
 	}
 	
-	public static SimpleUser[] contributionsToUsers(Contribution[] cs){
-		SimpleUser[] res = new SimpleUser[cs.length];
-		for(int i=0;i<res.length;i++){
-			res[i]=cs[i].getUser();
+	public static List<SimpleUser> contributionsToUsers(List<Contribution> cs){
+		List<SimpleUser> res = new ArrayList<SimpleUser>(cs.size());
+		for(Contribution c : cs){
+			res.add(c.getUser());
 		}
 		return res;
 	}

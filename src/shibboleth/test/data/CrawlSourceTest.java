@@ -4,6 +4,10 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -73,7 +77,7 @@ public class CrawlSourceTest {
 	
 	@Test
 	public void testGetContributionsEnsureAll() {
-		Contribution[] mockResult = {c1, c2};
+		List<Contribution> mockResult = Arrays.asList(new Contribution[]{c1, c2});
 		when(github.getContributions("repo", true)).thenReturn(mockResult);
 		
 		crawlSource.getContributions("repo", true);
@@ -100,7 +104,7 @@ public class CrawlSourceTest {
 	
 	@Test
 	public void testGetContributions() {
-		Contribution[] mockResult = {c1, c2};
+		List<Contribution> mockResult = Arrays.asList(new Contribution[]{c1, c2});
 		when(mysql.getContributions("repo", false)).thenReturn(mockResult);
 		
 		crawlSource.getContributions("repo", false);
@@ -114,10 +118,11 @@ public class CrawlSourceTest {
 
 	@Test
 	public void testGetRepos() {
-		Repo[] mockResult = {repo1, repo2};
+		Repo[] mockResultA = {repo1, repo2};
+		List<Repo> mockResult = Arrays.asList(mockResultA);
 		when(mysql.getRepos(eq("user1"), any(RepoFilter.class), eq(false)))
 		.thenReturn(mockResult)
-		.thenReturn(new Repo[]{});
+		.thenReturn(new ArrayList<Repo>());
 		
 		crawlSource.getRepos("user1", new TransparantFilter(), false);
 		crawlSource.getRepos("user1", new TransparantFilter(), false);
@@ -129,7 +134,8 @@ public class CrawlSourceTest {
 	
 	@Test
 	public void testGetReposEnsureAll() {
-		Repo[] mockResult = {repo1, repo2};
+		Repo[] mockResultA = {repo1, repo2};
+		List<Repo> mockResult = Arrays.asList(mockResultA);
 		
 		when(github.getRepos(eq("user1"), any(RepoFilter.class), eq(true)))
 		.thenReturn(mockResult);

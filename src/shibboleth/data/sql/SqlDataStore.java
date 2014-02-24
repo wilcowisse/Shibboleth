@@ -131,7 +131,7 @@ public class SqlDataStore implements DataStore{
 	}
 	
 	@Override
-	public Repo[] getRepos(String user, RepoFilter filter, boolean ensureAll) {
+	public List<Repo> getRepos(String user, RepoFilter filter, boolean ensureAll) {
 		if(!ensureAll || containsRecordLink(user)) {
 			List<Repo> repoList = new ArrayList<Repo>();
 			try {
@@ -156,7 +156,7 @@ public class SqlDataStore implements DataStore{
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-			return repoList.toArray(new Repo[]{});
+			return repoList;
 		}
 		else{
 			return null;
@@ -164,9 +164,9 @@ public class SqlDataStore implements DataStore{
 	}
 	
 	@Override
-	public Contribution[] getContributions(String repo, boolean ensureAll) {
+	public List<Contribution> getContributions(String repo, boolean ensureAll) {
 		if(!ensureAll || containsRecordLink(repo)) {
-			Contribution[] result = null;
+			List<Contribution> result = null;
 			try {
 				selectContributionsSt.setString(1, repo);
 				result = getContributions(selectContributionsSt);
@@ -181,16 +181,16 @@ public class SqlDataStore implements DataStore{
 	}
 	
 	@Override
-	public Contribution[] getAllContributions() {
+	public List<Contribution> getAllContributions() {
 		return getContributions(selectAllContributionsSt);
 	}
 	
-	private Contribution[] getContributions(PreparedStatement statement) {
-		Contribution[] result = null;
+	private List<Contribution> getContributions(PreparedStatement statement) {
+		List<Contribution> result = null;
 		try {
 			ResultSet resultSet = statement.executeQuery();
 			
-			List<Contribution> contributionList = new ArrayList<Contribution>();
+			result = new ArrayList<Contribution>();
 			while(resultSet.next()){
 				SimpleUser u 	= new SimpleUser(resultSet.getString("user_name"));
 				int count 		= resultSet.getInt("count");
@@ -203,10 +203,9 @@ public class SqlDataStore implements DataStore{
 					c.setContributionInfo(info);
 				}
 				
-				contributionList.add(c);
+				result.add(c);
 			}
 			
-			result = contributionList.toArray(new Contribution[]{});
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -299,7 +298,7 @@ public class SqlDataStore implements DataStore{
 	}
 	
 	@Override
-	public void storeNewContributions(Contribution[] cs) {
+	public void storeNewContributions(List<Contribution> cs) {
 		for(Contribution c : cs){
 			String repoName = c.getRepo().full_name;
 			String userName = c.getUser().login;
@@ -454,7 +453,7 @@ public class SqlDataStore implements DataStore{
 	public int deleteContributionsByRepo(String repo) {
 		int res = 0;
 		try {
-			Contribution[] contributionsByUser = getContributions(repo, false);
+			List<Contribution> contributionsByUser = getContributions(repo, false);
 			storedAllContributionsForRepo(repo, false);
 			for(Contribution c : contributionsByUser){
 				storedAllContributionsByUser(c.getUser().login, false);

@@ -1,5 +1,7 @@
 package shibboleth.data;
 
+import java.util.List;
+
 import shibboleth.model.Contribution;
 import shibboleth.model.Repo;
 import shibboleth.model.User;
@@ -49,7 +51,7 @@ public class CachedStore extends CachedSource implements DataStore{
 	}
 
 	@Override
-	public void storeNewContributions(Contribution[] cs) {
+	public void storeNewContributions(List<Contribution> cs) {
 		store.storeNewContributions(cs);
 	}
 

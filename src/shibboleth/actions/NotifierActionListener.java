@@ -48,7 +48,6 @@ public class NotifierActionListener implements ActionListener {
 		for(ActionListener l: listeners){
 			l.messagePushed(message, objects);
 		}
-
 	}
 
 	@Override
