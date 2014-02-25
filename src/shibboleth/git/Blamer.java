@@ -27,12 +27,12 @@ import shibboleth.model.GitFile;
  * This class provides functionality to analyze a repository on authorship
  * information of JavaScript files in this repository. 
  * 
- * Basically the git <tt>blame</tt> command is used to detect authorship information.
+ * The git <tt>blame</tt> command is used to detect authorship information.
  * 
  * @author Wilco Wisse
  *
  */
-public class Analyzer {
+public class Blamer {
 	
 	private File directory;
 	private String repo;
@@ -45,7 +45,7 @@ public class Analyzer {
 	 * @param directory The directory the repo is cloned to.
 	 * @param infoStore The commitInfoStore to store analyzed data into.
 	 */
-	public Analyzer(String repo, File directory, CommitInfoStore infoStore){
+	public Blamer(String repo, File directory, CommitInfoStore infoStore){
 		this.directory = directory;
 		this.repo = repo;
 		this.infoStore=infoStore;
@@ -115,7 +115,6 @@ public class Analyzer {
 					infoStore.insert(currentChunk);
 	        }
 	       
-	        
 	        repository.close();
 	        
 	        try {

@@ -1,5 +1,7 @@
 package shibboleth.model;
 
+import java.util.Objects;
+
 /**
  * Represents a match between a git committer and a Github user.
  * 
@@ -16,23 +18,38 @@ public class RecordLink implements Comparable<RecordLink>{
 	/**
 	 * The user.
 	 */
-	public User user;
+	public SimpleUser user;
 	
 	/**
 	 * Similarity between committer and user.
 	 */
 	public double similarity;
 	
+	
+	public RecordLink(Committer committer, SimpleUser user){
+		this.user=user;
+		this.committer=committer;
+		this.similarity=1;
+	}
+	
 	/**
-	 * A link between a committer and a user.
+	 * Contruct record link
 	 * @param committer The {@link Committer}
 	 * @param user The {@link User}
 	 * @param similarity The degree of similarity between the committer and user.
 	 */
-	public RecordLink(Committer committer, User user,  double similarity){
+	public RecordLink(Committer committer, SimpleUser user, double similarity){
 		this.user=user;
 		this.committer=committer;
 		this.similarity=similarity;
+	}
+	
+	/**
+	 * Set the similarity of this link.
+	 * @param similarity The similarity between committer and user.
+	 */
+	public void setSimilarity(double similarity){
+		this.similarity = similarity;
 	}
 	
 	@Override
@@ -47,5 +64,37 @@ public class RecordLink implements Comparable<RecordLink>{
 	public String toString(){
 		return committer + " --> " + user;
 	}
+
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof RecordLink))
+			return false;
+		RecordLink other = (RecordLink) obj;
+		if (committer == null) {
+			if (other.committer != null)
+				return false;
+		} else if (!committer.equals(other.committer))
+			return false;
+		if (user == null) {
+			if (other.user != null)
+				return false;
+		} else if (!user.equals(other.user))
+			return false;
+		return true;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(committer,user);
+	}
+
+
+	
+	
 
 }

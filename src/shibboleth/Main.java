@@ -185,7 +185,7 @@ public abstract class Main{
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
-		new AnalyzeAction(mysqlOnTopOfGithub, infoStore)
+		new AnalyzeAction(mysqlOnTopOfGithub, github, infoStore)
 			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);

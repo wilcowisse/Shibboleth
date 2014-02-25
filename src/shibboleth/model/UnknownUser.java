@@ -25,8 +25,8 @@ public class UnknownUser extends User {
 	}
 	
 	/**
-	 * Returns the unkown user
-	 * @return
+	 * Returns the unknown user
+	 * @return An instance of the unknown users.
 	 */
 	public static UnknownUser getInstance(){
 		if(unknown==null){
@@ -38,6 +38,14 @@ public class UnknownUser extends User {
 	@Override
 	public String toString(){
 		return "-UNKNOWN-";
+	}
+	
+	@Override
+	public boolean equals(Object other){
+		if (this == other)
+			return true;
+		else
+			return false;
 	}
 
 	

@@ -16,8 +16,8 @@ import shibboleth.model.Chunk;
 import shibboleth.model.Committer;
 import shibboleth.model.GitFile;
 import shibboleth.model.RecordLink;
+import shibboleth.model.SimpleUser;
 import shibboleth.model.UnknownUser;
-import shibboleth.model.User;
 
 /**
  * This class acts as data layer for committer information. Generally, 
@@ -31,7 +31,7 @@ import shibboleth.model.User;
 public class CommitInfoStore {
 	
 	private PreparedStatement insertFile, insertCommitter, insertChunk, insertRecordLink;
-	private PreparedStatement selectCommitterId, selectFileId, selectCommittersByRepo, selectChunkId;
+	private PreparedStatement selectCommitterId, selectFileId, selectCommittersByRepo, selectRecordLinksByRepo, selectChunkId;
 	private PreparedStatement deleteRecordLink;
 	
 	private List<Committer> committers;
@@ -57,6 +57,7 @@ public class CommitInfoStore {
 			selectFileId			=  connection.prepareStatement(Statements.selectFileId);
 			selectChunkId			=  connection.prepareStatement(Statements.selectChunkId);
 			selectCommittersByRepo 	=  connection.prepareStatement(Statements.selectCommittersByRepo);
+			selectRecordLinksByRepo =  connection.prepareStatement(Statements.selectRecordLinksByRepo);
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -195,20 +196,17 @@ public class CommitInfoStore {
 				insertCommitter.setString(2, c.email);
 				insertCommitter.setString(3, c.name);
 				
-				System.out.println(insertCommitter);
 				insertCommitter.executeUpdate();
 				
 				int affected = insertCommitter.getUpdateCount();
-				System.out.println("affected commiters" + affected);
 				committerKey = -1;
 				ResultSet generatedKeys = insertCommitter.getGeneratedKeys();
-				if(generatedKeys.next()){
+				if(generatedKeys.next() && affected > 0){
 					committerKey = generatedKeys.getInt(1);
 					committerIds.put(c, committerKey);
-					System.out.println("Generated committer "+committerKey);
 				}
 				else{
-					System.out.println("Generated no commiter id");
+					System.out.println("Generated no commiter id!!");
 				}
 			}
 
@@ -266,7 +264,6 @@ public class CommitInfoStore {
 	 * @return All committers which contributed to the given <tt>repo</tt>.
 	 */
 	public List<Committer> getCommitters(String repo){
-		
 		List<Committer> committerList = new ArrayList<Committer>();
 		try {
 			selectCommittersByRepo.setString(1, repo);
@@ -284,6 +281,34 @@ public class CommitInfoStore {
 		}
 		
 		return committerList;
+	}
+	
+	public List<RecordLink> getRecordLinks(String repo){
+		List<RecordLink> recordLinkList = new ArrayList<RecordLink>();
+		try {
+			selectRecordLinksByRepo.setString(1, repo);
+			ResultSet resultSet = selectRecordLinksByRepo.executeQuery();
+			
+			while(resultSet.next()){
+				Committer c = new Committer();
+				c.email=resultSet.getString("email");
+				c.name =resultSet.getString("name");
+				c.repo = repo;
+				
+				String userName = resultSet.getString("user");
+				SimpleUser user = null;
+				if(userName == null)
+					user=UnknownUser.getInstance();
+				else
+					user = new SimpleUser(userName);
+				
+				recordLinkList.add(new RecordLink(c, user, 1));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return recordLinkList;
 	}
 	
 	/**
@@ -315,6 +340,8 @@ public class CommitInfoStore {
 			e.printStackTrace();
 		}
 	}
+	
+	
 	
 	
 }

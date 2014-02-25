@@ -2,7 +2,9 @@ package shibboleth.model;
 
 import java.util.Objects;
 
-import shibboleth.git.Linker;
+import com.google.api.client.util.Key;
+
+import shibboleth.git.JaroWinklerLinker;
 
 /**
  * A committer is someone who committed to a git project.
@@ -13,12 +15,13 @@ import shibboleth.git.Linker;
  * a central database with unique user identification id's. This is 
  * also why Committers should manually be linked to Github users.
  * 
- * @see Linker
+ * @see JaroWinklerLinker
  * 
  * @author Wilco Wisse
  *
  */
 public class Committer {
+	
 	/**
 	 * The repo
 	 */
@@ -27,11 +30,13 @@ public class Committer {
 	/**
 	 * The email of the committer
 	 */
+	@Key
 	public String email;
 	
 	/**
 	 * The name of the committer.
 	 */
+	@Key
 	public String name;
 	
 	@Override

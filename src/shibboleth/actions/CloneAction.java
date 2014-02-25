@@ -1,9 +1,9 @@
 package shibboleth.actions;
 
 import shibboleth.data.DataSource;
-import shibboleth.git.Analyzer;
+import shibboleth.git.Blamer;
 import shibboleth.git.Cloner;
-import shibboleth.git.Linker;
+import shibboleth.git.JaroWinklerLinker;
 import shibboleth.model.Repo;
 
 /**
@@ -12,8 +12,8 @@ import shibboleth.model.Repo;
  * Syntax: <tt>clone [repo]</tt>
  * 
  * @see Cloner
- * @see Analyzer
- * @see Linker
+ * @see Blamer
+ * @see JaroWinklerLinker
  * @author Wilco Wisse
  *
  */

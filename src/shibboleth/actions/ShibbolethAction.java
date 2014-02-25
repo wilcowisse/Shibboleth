@@ -14,7 +14,7 @@ public abstract class ShibbolethAction {
 	
 	/**
 	 * Set a listener for this action.
-	 * @param listener
+	 * @param l The listener
 	 * @return this
 	 */
 	public ShibbolethAction addActionListener(ActionListener l){

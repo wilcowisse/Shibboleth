@@ -22,7 +22,7 @@ public class HashMapStoreTest {
 
 	private DataStore store;
 	private User kees, jan, piet, henk;
-	private SimpleUser simpleU1, simpleU2;
+	private SimpleUser simpleU1;
 	private Repo keesR1, keesR2, janR1, pietR1, henkR1;
 	private SimpleRepo simpleR1, simpleR2;
 	private Contribution keesR1_kees, keesR1_jan, keesR1_henk;
@@ -44,7 +44,6 @@ public class HashMapStoreTest {
 		henk.login="henk";
 		
 		simpleU1=new SimpleUser("simpleU1");
-		simpleU2=new SimpleUser("simpleU2");
 		
 		keesR1 = new Repo();
 		keesR1.full_name="kees/R1";

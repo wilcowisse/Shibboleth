@@ -9,7 +9,6 @@ public interface GithubGraph {
 	 * Add user to the graph, if the graph already contains this user, 
 	 * nothing is added.
 	 * @param user The user.
-	 * @return The Node belonging to the user.
 	 */
 	public void add(SimpleUser user);
 	
@@ -17,7 +16,6 @@ public interface GithubGraph {
 	 * Add repo to the graph, if the graph already contains this repo, 
 	 * nothing is added.
 	 * @param repo The repo.
-	 * @return The Node belonging to the repo.
 	 */
 	public void add(SimpleRepo repo);
 	

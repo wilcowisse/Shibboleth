@@ -14,8 +14,8 @@ import shibboleth.model.User;
 import shibboleth.util.GithubUtil;
 
 /**
- * A DataSource optimized for crawling. This cache is a hybrid between the @link{SqlDataStore} and the 
- * @link{HasMapStore}. This store assumes the database is empty initially and keeps track of what contributions
+ * A DataSource optimized for crawling. This cache is a hybrid between the {@link SqlDataStore} and the 
+ * {@link HashMapStore}. This store assumes the database is empty initially and keeps track of what contributions
  * are in the database in memory (avoid checking the database for duplicates).
  * 
  * 

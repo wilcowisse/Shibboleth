@@ -144,7 +144,12 @@ public class Statements {
 	"SELECT * FROM Committers WHERE repo=?;";
 	
 	
-
+	public static final String selectRecordLinksByRepo = 
+	"SELECT email,name,user FROM Committers " +
+	"LEFT JOIN RecordLinks ON RecordLinks.committer=Committers.id " +
+	"WHERE repo=?;";
+	
+	
 	/*******************************************/
 
 	

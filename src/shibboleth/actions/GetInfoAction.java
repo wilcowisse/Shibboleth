@@ -1,6 +1,5 @@
 package shibboleth.actions;
 
-import java.util.Collections;
 import java.util.List;
 
 import shibboleth.data.DataSource;

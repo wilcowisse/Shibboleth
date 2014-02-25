@@ -22,8 +22,8 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 
 import shibboleth.model.RecordLink;
+import shibboleth.model.SimpleUser;
 import shibboleth.model.UnknownUser;
-import shibboleth.model.User;
 
 /**
  * GUI for human evaluation of Link records.
@@ -39,9 +39,9 @@ public class RecordLinkChooser extends JDialog implements ListSelectionListener,
 	
 	private JTable table;
 	private LinkTableModel tableModel;
-	private List<User> users;
+	private List<? extends SimpleUser> users;
 	
-	private JComboBox<User> combo;
+	private JComboBox<SimpleUser> combo;
 	private JButton cancelButton, applyButton;
 	
 	private int userChoice = CANCELED;
@@ -87,14 +87,14 @@ public class RecordLinkChooser extends JDialog implements ListSelectionListener,
 				return null;
 		}
 		
-		public void setUser(int index, User u){
+		public void setUser(int index, SimpleUser u){
 			if(index >= 0 && index <list.size()){
 				list.get(index).user=u;
 				fireTableCellUpdated(index, 1);
 			}
 		}
 		
-		public User getUser(int index){
+		public SimpleUser getUser(int index){
 			return list.get(index).user;
 		}
 	}
@@ -104,7 +104,7 @@ public class RecordLinkChooser extends JDialog implements ListSelectionListener,
 	 * @param recordLinks All record links of one single repo.
 	 * @param users All github users of that repo.
 	 */
-	public RecordLinkChooser(List<RecordLink> recordLinks, List<User> users){
+	public RecordLinkChooser(List<RecordLink> recordLinks, List<? extends SimpleUser> users){
 		super(null, Dialog.ModalityType.TOOLKIT_MODAL);
 		
 		this.users = users;
@@ -149,8 +149,8 @@ public class RecordLinkChooser extends JDialog implements ListSelectionListener,
 		JPanel toolbar = new JPanel();
 		toolbar.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		
-		combo = new JComboBox<User>();
-		for(User u : users){
+		combo = new JComboBox<SimpleUser>();
+		for(SimpleUser u : users){
 			combo.addItem(u);
 			if(u==null){
 				System.out.println("null user");
@@ -179,7 +179,7 @@ public class RecordLinkChooser extends JDialog implements ListSelectionListener,
             return;
         
 		int selectedRow = table.getSelectedRow();
-		User u = tableModel.getUser(selectedRow);
+		SimpleUser u = tableModel.getUser(selectedRow);
 		combo.setSelectedItem(u);
 	}
 	
@@ -187,7 +187,7 @@ public class RecordLinkChooser extends JDialog implements ListSelectionListener,
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource() == combo){
 			int selectedIndex = combo.getSelectedIndex();
-			User selectedUser = combo.getItemAt(selectedIndex);
+			SimpleUser selectedUser = combo.getItemAt(selectedIndex);
 			
 			int selectedRow = table.getSelectedRow();
 			if(selectedRow != -1)
@@ -210,7 +210,7 @@ public class RecordLinkChooser extends JDialog implements ListSelectionListener,
 	 * @param users All github users of that repo.
 	 * @return The close option of the user: either {@link #CANCELED} or {@link #SAVED}.
 	 */
-	public static int evaluateLinks(List<RecordLink> recordLinks, List<User> users) {
+	public static int evaluateLinks(List<RecordLink> recordLinks, List<? extends SimpleUser> users) {
 		RecordLinkChooser chooser = new RecordLinkChooser(recordLinks, users);
 		return chooser.getUserChoice();
 	}
