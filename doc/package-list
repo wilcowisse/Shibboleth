@@ -6,3 +6,4 @@ shibboleth.data.sql
 shibboleth.git
 shibboleth.gui
 shibboleth.model
+shibboleth.util
