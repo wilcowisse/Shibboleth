@@ -14,6 +14,7 @@ import shibboleth.data.DataStore;
 import shibboleth.data.RepoFilter;
 import shibboleth.data.TransparantFilter;
 import shibboleth.model.Contribution;
+import shibboleth.model.ContributionId;
 import shibboleth.model.ContributionInfo;
 import shibboleth.model.Repo;
 import shibboleth.model.SimpleRepo;
@@ -169,7 +170,8 @@ public class SqlDataStore implements DataStore{
 			List<Contribution> result = null;
 			try {
 				selectContributionsSt.setString(1, repo);
-				result = getContributions(selectContributionsSt);
+				List<? extends Contribution> cs = getContributions(selectContributionsSt);
+				result = new ArrayList<Contribution>(cs);
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -182,35 +184,40 @@ public class SqlDataStore implements DataStore{
 	
 	@Override
 	public List<Contribution> getAllContributions() {
+		List<? extends Contribution> allCs = getAllContributionIds();
+		List<Contribution> result = new ArrayList<Contribution>(allCs);
+		return result;
+	}
+	
+	public List<ContributionId> getAllContributionIds(){
 		return getContributions(selectAllContributionsSt);
 	}
 	
-	private List<Contribution> getContributions(PreparedStatement statement) {
-		List<Contribution> result = null;
+	private List<ContributionId> getContributions(PreparedStatement statement) {
+		List<ContributionId> contributions = new ArrayList<ContributionId>();
 		try {
-			ResultSet resultSet = statement.executeQuery();
 			
-			result = new ArrayList<Contribution>();
+			ResultSet resultSet = statement.executeQuery();
 			while(resultSet.next()){
+				int id			= resultSet.getInt("id");
 				SimpleUser u 	= new SimpleUser(resultSet.getString("user_name"));
 				int count 		= resultSet.getInt("count");
 				int percentage 	= resultSet.getInt("percentage");
 				SimpleRepo r 	= new SimpleRepo(resultSet.getString("repo_name"));
-				Contribution c 	= new Contribution(u,r);
+				ContributionId c 	= new ContributionId(id,u,r);
 				
 				if(count!=0){
 					ContributionInfo info = new ContributionInfo(count, percentage);
 					c.setContributionInfo(info);
 				}
-				
-				result.add(c);
+				contributions.add(c);
 			}
 			
-
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return result;
+		return contributions;
+
 	}
 	
 	@Override
@@ -263,7 +270,7 @@ public class SqlDataStore implements DataStore{
 	
 	@Override
 	public void storeContribution(Contribution c) {
-		int key = storeContributionWithoutInfo(c);
+		int key = storeContributionWithoutInfo(c).getKey();
 		if(key != -1 && c.hasContributionInfo()){
 			storeContributionInfo(key, c.getContributionInfo());
 		}
@@ -274,7 +281,7 @@ public class SqlDataStore implements DataStore{
 	 * @param c The contribution
 	 * @return The database its primary key value of this contribution
 	 */
-	public int storeContributionWithoutInfo(Contribution c){
+	public ContributionId storeContributionWithoutInfo(Contribution c){
 		String repoName=c.getRepo().full_name;
 		String userName=c.getUser().login;
 		int key = -1;
@@ -294,7 +301,7 @@ public class SqlDataStore implements DataStore{
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return key;
+		return ContributionId.fromContribution(key, c);
 	}
 	
 	@Override
@@ -340,38 +347,6 @@ public class SqlDataStore implements DataStore{
 			e.printStackTrace();
 		}
 	}
-
-//	@Override
-//	public boolean containsUser(String userName) {
-//		try {
-//			countUsersSt.setString(1, userName);
-//			return resultCount(countUsersSt)>0;
-//		} catch (SQLException e) {
-//			e.printStackTrace();
-//		}
-//		return false;
-//	}
-//
-//	@Override
-//	public boolean containsRepo(String repoName) {
-//		try {
-//			countReposSt.setString(1, repoName);
-//			return resultCount(countReposSt)>0;
-//		} catch (SQLException e) {
-//			e.printStackTrace();
-//		}
-//		return false;
-//	}
-//	public boolean containsContributionInfo(String repo, String user) {
-//		try {
-//			countContributionsInfoSt.setString(1, repo);
-//			countContributionsInfoSt.setString(2, user);
-//			return resultCount(countContributionsSt)>0;
-//		} catch (SQLException e) {
-//			e.printStackTrace();
-//		}
-//		return false;
-//	}
 	
 	public boolean containsContribution(String repo, String user) {
 		try {
@@ -524,6 +499,8 @@ public class SqlDataStore implements DataStore{
 		return result;
 	}
 	
+	
+	// manual testing
 	@SuppressWarnings("unused")
 	public static void main(String[] args){
 		

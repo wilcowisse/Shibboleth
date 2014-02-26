@@ -20,6 +20,7 @@ public class CliActionListener implements ActionListener {
 	public void messagePushed(String message, Object[] objects) {
 		System.out.println();
 		System.out.println(" | MESSAGE");
+		message = message.replace("\n", "\n | ");
 		printBar(message.length());
 		System.out.println(" | " + message);
 		printBar(message.length());
@@ -35,6 +36,7 @@ public class CliActionListener implements ActionListener {
 	public void messagePushed(String message) {
 		System.out.println();
 		System.out.println(" | MESSAGE");
+		message = message.replace("\n", "\n | ");
 		printBar(message.length());
 		System.out.println(" | " + message);
 		printBar(message.length());
@@ -43,6 +45,7 @@ public class CliActionListener implements ActionListener {
 	
 	private void printBar(int messageLength){
 		System.out.print(" | ");
+		messageLength = Math.max(20, messageLength);
 		for(int i=0; i<messageLength; i++)
 			System.out.print('-');
 		System.out.println();

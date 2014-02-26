@@ -66,7 +66,7 @@ public class CrawlMain extends Main {
 		
 		System.out.println("Crawling mode.");
 		
-		cli.messagePushed("Enter commands. Provide 'q' to quit.");
+		cli.messagePushed("Enter commands. 'q' = quit.");
 		Scanner scanner = new Scanner(System.in);
 		while(true){
 			String command = scanner.nextLine().trim();
@@ -81,7 +81,7 @@ public class CrawlMain extends Main {
 			}
 			else{
 				if(executor.doAction(command) == false){
-					System.out.println("Wrong syntax.");
+					System.out.println("Wrong syntax. Enter 'q' to quit.");
 				}
 				System.out.println();
 			}

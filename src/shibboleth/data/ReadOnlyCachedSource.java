@@ -58,26 +58,6 @@ public class ReadOnlyCachedSource implements DataSource {
 		return rs;
 	}
 
-//	@Override
-//	public boolean containsUser(String userName) {
-//		return cache.containsUser(userName);
-//	}
-//
-//	@Override
-//	public boolean containsRepo(String repoName) {
-//		return cache.containsRepo(repoName);
-//	}
-//
-//	@Override
-//	public boolean containsContribution(String repo, String user) {
-//		return cache.containsContribution(repo, user);
-//	}
-//
-//	@Override
-//	public boolean containsContributionInfo(String repo, String user) {
-//		return cache.containsContributionInfo(repo, user);
-//	}
-
 	@Override
 	public List<Contribution> getAllContributions() {
 		return cache.getAllContributions();

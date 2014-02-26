@@ -51,7 +51,7 @@ public class GetAction extends ShibbolethAction{
 			String argument = args[1];
 			if(argument.equals("-all"))
 				requestAllContributions();
-			else if(argument.indexOf('/')==-1){
+			else if(GithubUtil.isUserName(argument)){
 				User user = source.getUser(argument);
 				RepoFilter filter = null;
 				if(args.length==3 && "-l".equals(args[2]))
@@ -67,7 +67,7 @@ public class GetAction extends ShibbolethAction{
 		}
 		else if(args.length > 1 && args[0].equals("ca")) {
 			String argument = args[1];
-			if(argument.indexOf('/')==-1){
+			if(GithubUtil.isUserName(argument)){
 				User user = source.getUser(argument);
 				RepoFilter filter = null;
 				if(args.length==3 && "-l".equals(args[2]))
@@ -83,7 +83,7 @@ public class GetAction extends ShibbolethAction{
 		}
 		else if(args.length > 1 && args[0].equals("cu")) {
 			String argument = args[1];
-			if(argument.indexOf('/')!=-1){
+			if(GithubUtil.isRepoName(argument)){
 				Repo repo = source.getRepo(argument);
 				List<Contribution> cs = source.getContributions(repo.full_name, false);
 				for(Contribution c : cs)
@@ -109,6 +109,7 @@ public class GetAction extends ShibbolethAction{
 			
 			for(Contribution c : GithubUtil.reposToContributions(rs, u)){
 				graph.addContribution(c);
+				System.out.println(c.getRepo().full_name);
 			}
 			
 			listener.graphChanged("Added " + rs.size() +" contributions of "+u.login, false);

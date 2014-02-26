@@ -269,6 +269,7 @@ public class GithubDataSource implements DataSource{
 	
 	@Override
 	public List<Repo> getRepos(String user, RepoFilter filter, boolean ensureAll) {
+		ArrayList<Repo> result = new ArrayList<Repo>();
 		if(ensureAll){
 			GithubUrl url = new GithubUrl("https://api.github.com/users/"+user+"/repos")
 				.withAccessToken(accessToken);
@@ -277,14 +278,20 @@ public class GithubDataSource implements DataSource{
 				repoList = doPaginatedRequest(url, Repo[].class);
 			}catch(HttpResponseException e){
 				System.out.println(e.getMessage());
+				return result;
 			}catch (IOException e) {
 				e.printStackTrace();
+				return result;
 			}
-		
-			return repoList;
+			
+			for(Repo r : repoList){
+				if(filter.accepts(r))
+					result.add(r);
+			}
+			return result;
 		}
 		else{
-			return  new ArrayList<Repo>();
+			return result;
 		}
 	}
 	

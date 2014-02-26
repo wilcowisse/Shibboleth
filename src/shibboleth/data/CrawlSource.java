@@ -9,6 +9,7 @@ import java.util.Set;
 import shibboleth.data.github.GithubDataSource;
 import shibboleth.data.sql.SqlDataStore;
 import shibboleth.model.Contribution;
+import shibboleth.model.ContributionId;
 import shibboleth.model.Repo;
 import shibboleth.model.User;
 import shibboleth.util.GithubUtil;
@@ -27,23 +28,21 @@ public class CrawlSource implements DataSource{
 	private GithubDataSource github;
 	
 	private Set<String> storedAllReposForUser, storedAllContributionsForRepo;
-	private Map<Contribution, Tuple> storedContributions;
-	
-	private static class Tuple{
-		public Tuple(int key, boolean hasStoredInfo){
-			this.key = key;
-			this.hasStoredInfo = hasStoredInfo;
-		}
-		public int key=-1;
-		public boolean hasStoredInfo = false;
-	}
+	private Map<Integer,ContributionId> storedContributions;
 	
 	public CrawlSource(SqlDataStore cache, GithubDataSource source){
 		this.mysql = cache;
 		this.github=source;
 		storedAllReposForUser = new HashSet<String>(1000);
 		storedAllContributionsForRepo = new HashSet<String>(1000);
-		storedContributions = new HashMap<Contribution,Tuple>(); // contribution -> (key,storedInfo)
+		storedContributions = new HashMap<Integer,ContributionId>();
+		
+		System.out.print("Retrieving contributions from db...");
+		for(ContributionId c : mysql.getAllContributionIds()){
+			storedContributions.put(c.hashCode(), c);
+		}
+		System.out.print("done.");
+		
 	}
 	
 	@Override
@@ -90,7 +89,7 @@ public class CrawlSource implements DataSource{
 		}
 		else{
 			List<Contribution> result = github.getContributions(repo, ensureAll);
-			storeNewContributions(result);
+			this.storeNewContributions(result);
 			
 			mysql.storedAllContributionsForRepo(repo, true);
 			storedAllContributionsForRepo.add(repo);
@@ -104,21 +103,21 @@ public class CrawlSource implements DataSource{
 	 */
 	public void storeNewContributions(List<Contribution> cs){
 		for(Contribution c : cs){
-			Tuple t = storedContributions.get(c);
-			if(t == null){
-				int key = mysql.storeContributionWithoutInfo(c);
-				Tuple stored = new Tuple(key, false);
-				storedContributions.put(c, stored);
+			ContributionId t = storedContributions.get(c.hashCode());
+			
+			if(t == null) {
+				t = mysql.storeContributionWithoutInfo(c);
+				storedContributions.put(t.hashCode(), t);
 				
 				if(c.hasContributionInfo()){
-					mysql.storeContributionInfo(key, c.getContributionInfo());
-					stored.hasStoredInfo=true;
+					mysql.storeContributionInfo(t.getKey(), c.getContributionInfo());
 				}
 			}
-			else if(!t.hasStoredInfo && c.hasContributionInfo()){
-				mysql.storeContributionInfo(t.key, c.getContributionInfo());
-				t.hasStoredInfo=true;
+			else if(!t.hasContributionInfo() && c.hasContributionInfo()) {
+				mysql.storeContributionInfo(t.getKey(), c.getContributionInfo());
+				t.setContributionInfo(c.getContributionInfo());
 			}
+			// else: do nothing
 			
 		}
 	}

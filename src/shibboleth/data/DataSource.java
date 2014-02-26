@@ -62,21 +62,6 @@ public interface DataSource {
 	 * @return All contributions this source contains.
 	 */
 	public List<Contribution> getAllContributions();
-	
-//	/**
-//	 * Whether the source contains the given contribution.
-//	 * @return Returns <tt>true</tt> iff this source contains a contribution 
-//	 * for <tt>repo</tt> by <tt>user</tt>.
-//	 */
-//	public boolean containsContribution(String repo, String user);
-//	
-//	/**
-//	 * Whether the source contains the given contribution information.
-//	 * @return Returns <tt>true</tt> iff this source contains contribution 
-//	 * information for <tt>repo</tt> by <tt>user</tt>.
-//	 * @see shibboleth.model.Contribution#getContributionInfo()
-//	 */
-//	public boolean containsContributionInfo(String repo, String user);
-	
+		
 	
 }

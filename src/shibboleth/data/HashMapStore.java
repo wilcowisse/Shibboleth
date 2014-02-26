@@ -93,30 +93,6 @@ public class HashMapStore implements DataStore{
 		storedAllReposForUser.clear();
 		storedAllContributionsForRepo.clear();
 	}
-
-//	@Override
-//	public boolean containsUser(String userName) {
-//		return users.containsKey(userName);
-//	}
-//
-//	@Override
-//	public boolean containsRepo(String repoName) {
-//		return repos.containsKey(repoName);
-//	}
-//
-//	@Override
-//	public boolean containsContribution(String repo, String user) {
-//		return getContribution(repo, user) != null;
-//	}
-//
-//	@Override
-//	public boolean containsContributionInfo(String repo, String user) {
-//		Contribution c = getContribution(repo, user);
-//		if(c != null)
-//			return c.hasContributionInfo();
-//		else	
-//			return false;
-//	}
 	
 	@Override
 	public void storeRepo(Repo repo) {

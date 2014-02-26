@@ -89,26 +89,6 @@ public class CachedSource implements DataSource {
 		return rs;
 	}
 
-//	@Override
-//	public boolean containsUser(String userName) {
-//		return cache.containsUser(userName);
-//	}
-//
-//	@Override
-//	public boolean containsRepo(String repoName) {
-//		return cache.containsRepo(repoName);
-//	}
-//
-//	@Override
-//	public boolean containsContribution(String repo, String user) {
-//		return cache.containsContribution(repo, user);
-//	}
-//
-//	@Override
-//	public boolean containsContributionInfo(String repo, String user) {
-//		return cache.containsContributionInfo(repo, user);
-//	}
-
 	/**
 	 * @return All contributions in the cache. Not all contribution in the source!
 	 */

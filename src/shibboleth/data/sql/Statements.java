@@ -60,7 +60,7 @@ public class Statements {
 	
 	/********************************************/
 	
-	public static final String selectAllContributions = "SELECT repo_name, user_name, count, percentage FROM Contributions " +
+	public static final String selectAllContributions = "SELECT id, repo_name, user_name, count, percentage FROM Contributions " +
 	"LEFT JOIN ContributionInfo ON Contributions.id = ContributionInfo.contribution_id;";
 	
 	
