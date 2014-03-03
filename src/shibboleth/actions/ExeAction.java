@@ -43,7 +43,7 @@ public class ExeAction extends ShibbolethAction implements ActionExecutor{
 		    			rateThreshold = 1;
 		    		}
 		    		
-		    		if(args.length>2 && args[2].equals("-w"))
+		    		if(args.length>2 && args[2].equals("-s"))
 		    			sleep = true;
 		    	}
 		    	

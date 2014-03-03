@@ -44,8 +44,8 @@ public class Chunk {
 	 * @return Returns true if the other Chunk has the same file.
 	 */
 	public boolean hasSameFileAs(Chunk other){
-		if(file==null)
-			return false;
+		if(other==null)
+			return this.start==0;
 		else
 			return file.equals(other.file);
 	}
