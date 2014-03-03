@@ -2,6 +2,8 @@ package shibboleth.git;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 
 import org.eclipse.jgit.api.BlameCommand;
@@ -18,7 +20,9 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.TreeWalk;
 
+import shibboleth.data.DataSource;
 import shibboleth.data.sql.CommitInfoStore;
+import shibboleth.data.sql.SqlDataStore;
 import shibboleth.model.Chunk;
 import shibboleth.model.Committer;
 import shibboleth.model.GitFile;
@@ -57,7 +61,7 @@ public class Blamer {
 	 * {@link shibboleth.model.GitFile files} in the
 	 * cloned repository.
 	 */
-	public void analyze(){
+	public void blame(){
 		Repository repository = null;
 		try {
 			repository = FileRepositoryBuilder.create(new File(directory,".git"));
@@ -76,7 +80,7 @@ public class Blamer {
 	        while (treeWalk.next()) {
 	        	@SuppressWarnings("unused")
 				ObjectId id = treeWalk.getObjectId(0);
-	        					
+	        	
 				BlameResult blameResult = new BlameCommand(repository)
 					.setFilePath(treeWalk.getPathString())
 					.call();
@@ -84,7 +88,7 @@ public class Blamer {
 				GitFile file = new GitFile();
 				file.repo = repo;
 				file.head = ObjectId.toString(head.getObjectId());
-				file.filename = treeWalk.getPathString();
+				file.filePath = treeWalk.getPathString();
 				
 				PersonIdent currentIdent = null;
 				Chunk currentChunk = null;
@@ -133,18 +137,18 @@ public class Blamer {
 //	public static void main(String[] args){
 //		Connection connection = null;
 //		try {
-//			Class.forName("com.mysql.jdbc.Driver");
-//			connection = DriverManager.getConnection("jdbc:mysql://localhost/shibboleth?user=root&password=pass");
+//			Class.forName("org.sqlite.JDBC");
+//			connection = DriverManager.getConnection("jdbc:sqlite:db/db.sqlite");	
 //		} catch (SQLException | ClassNotFoundException e) {
 //			e.printStackTrace();
 //		}
 //		
 //		CommitInfoStore infoStore = new CommitInfoStore(connection);
 //		
-//		DataSource source = new MySqlDataStore(connection);
+//		//DataSource source = new SqlDataStore(connection);
 //		
-//		Analyser a = new Analyser("livingston/autoSize", new File("clones/livingston-autoSize"), infoStore);
-//		a.analyse();
+//		Blamer blamer = new Blamer("creationix/gisty", new File("clones/creationix-gisty"), infoStore);
+//		blamer.blame();
 //	}
 	
 	

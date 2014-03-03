@@ -23,11 +23,11 @@ public class GitFile {
 	/**
 	 * The file name of this file.
 	 */
-	public String filename;
+	public String filePath;
 	
 	@Override
 	public String toString(){
-		return String.format("File: %s %s %s", repo, head, filename);
+		return String.format("File: %s %s %s", repo, head, filePath);
 	}
 	
 	@Override
@@ -35,12 +35,12 @@ public class GitFile {
 		return other instanceof GitFile ? 
 				   (repo     != null ? repo.equals(((GitFile)other).repo)         : ((GitFile)other).repo == null)
 				&& (head     != null ? head.equals(((GitFile)other).head)         : ((GitFile)other).head == null)
-				&& (filename != null ? filename.equals(((GitFile)other).filename) : ((GitFile)other).filename == null)
+				&& (filePath != null ? filePath.equals(((GitFile)other).filePath) : ((GitFile)other).filePath == null)
 				: false;
 	}
 	
 	@Override
 	public int hashCode(){
-		return Objects.hash(repo,head,filename);
+		return Objects.hash(repo,head,filePath);
 	}
 }

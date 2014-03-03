@@ -17,8 +17,8 @@ import shibboleth.model.GephiGraph;
 public class CliMain extends Main {
 	
 	public CliMain(){
-		//initApp(createMySqlConnection("root", "pass"), new GephiGraph());
-		initApp(createSqliteConnection("db/db.sqlite"), new GephiGraph());
+		initApp(createMySqlConnection("root", "pass"), new GephiGraph());
+		//initApp(createSqliteConnection("db/db.sqlite"), new GephiGraph());
 		
 		ActionListener cli = new CliActionListener();
 		ActionExecutor executor = new BasicActionExecutor();

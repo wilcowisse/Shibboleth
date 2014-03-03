@@ -19,6 +19,7 @@ import shibboleth.actions.DeleteAction;
 import shibboleth.actions.ExeAction;
 import shibboleth.actions.ExplodeAction;
 import shibboleth.actions.ExportAction;
+import shibboleth.actions.GephiAction;
 import shibboleth.actions.GetAction;
 import shibboleth.actions.GetInfoAction;
 import shibboleth.actions.HelpAction;
@@ -65,7 +66,7 @@ public abstract class Main{
 		this.connection = connection;
 		this.graph = graph;
 		
-		initIO(Proxy.NO_PROXY);
+		initIO();
 		
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 		    @Override
@@ -100,17 +101,18 @@ public abstract class Main{
 	}
 	
 	
-	public void initIO(Proxy proxy){
+	public void initIO(){
 		
 		// Commit info store
 		infoStore = new CommitInfoStore(connection);
 		
 		// Datasource: github api
 		rate = new RateLimitValue();
+		
 		//if(proxy == Proxy.NO_PROXY)
-			github = new GithubDataSource(rate);
+		github = new GithubDataSource(rate);
 		//else
-		//	github = new GithubDataSource(rate, proxy);
+		//github = new GithubDataSource(rate, proxy);
 		
 		// Datastore: hashmap cache 
 		hashCache = new HashMapStore();
@@ -195,12 +197,17 @@ public abstract class Main{
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
-		new ExportAction(graph)
+		new GephiAction(graph)
 			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
 		new HighlightAction(graph, mysql)
+			.addActionListener(listener)
+			.addExecutor(executor)
+			.addExecutor(exeAction);
+		
+		new ExportAction(infoStore)
 			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);

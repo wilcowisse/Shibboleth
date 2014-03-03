@@ -41,7 +41,7 @@ public class CrawlSource implements DataSource{
 		for(ContributionId c : mysql.getAllContributionIds()){
 			storedContributions.put(c.hashCode(), c);
 		}
-		System.out.print("done.");
+		System.out.println("done.");
 		
 	}
 	

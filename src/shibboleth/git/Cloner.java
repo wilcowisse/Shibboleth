@@ -5,6 +5,7 @@ import java.io.File;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import shibboleth.model.Repo;
+import shibboleth.model.SimpleRepo;
 
 /**
  * Clones remote Git repositories.
@@ -52,7 +53,7 @@ public class Cloner {
 	 * Get the parent directory name of a repo.
 	 * @return The parent directory name of repo <tt>r</tt>.
 	 */
-	public static String getDirName(Repo r){
+	public static String getDirName(SimpleRepo r){
 		return r.full_name.replace('/', '-');
 	}
 	

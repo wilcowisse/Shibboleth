@@ -4,8 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +20,8 @@ import shibboleth.model.GitFile;
 import shibboleth.model.RecordLink;
 import shibboleth.model.SimpleUser;
 import shibboleth.model.UnknownUser;
+import shibboleth.model.UserChunk;
+import shibboleth.util.GithubUtil;
 
 /**
  * This class acts as data layer for committer information. Generally, 
@@ -31,7 +35,7 @@ import shibboleth.model.UnknownUser;
 public class CommitInfoStore {
 	
 	private PreparedStatement insertFile, insertCommitter, insertChunk, insertRecordLink;
-	private PreparedStatement selectCommitterId, selectFileId, selectCommittersByRepo, selectRecordLinksByRepo, selectChunkId;
+	private PreparedStatement selectCommitterId, selectFileId, selectCommittersByRepo, selectRecordLinksByRepo, selectChunkId, selectUserChunksOfFile, selectFiles;
 	private PreparedStatement deleteRecordLink;
 	
 	private List<Committer> committers;
@@ -58,7 +62,8 @@ public class CommitInfoStore {
 			selectChunkId			=  connection.prepareStatement(Statements.selectChunkId);
 			selectCommittersByRepo 	=  connection.prepareStatement(Statements.selectCommittersByRepo);
 			selectRecordLinksByRepo =  connection.prepareStatement(Statements.selectRecordLinksByRepo);
-			
+			selectUserChunksOfFile	=  connection.prepareStatement(Statements.selectUserChunksOfFile);
+			selectFiles				=  connection.prepareStatement(Statements.selectAllFiles);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -116,7 +121,7 @@ public class CommitInfoStore {
 		else{
 			selectFileId.setString(1,file.repo);
 			selectFileId.setString(2,file.head);
-			selectFileId.setString(3,file.filename);
+			selectFileId.setString(3,file.filePath);
 			ResultSet resultSet = selectFileId.executeQuery();
 			if(resultSet.next()){
 				fileId = resultSet.getInt("id");
@@ -217,19 +222,15 @@ public class CommitInfoStore {
 			if(fileKey == -1){
 				insertFile.setString(1, f.repo);
 				insertFile.setString(2, f.head);
-				insertFile.setString(3, f.filename);
+				insertFile.setString(3, f.filePath);
 				
 				insertFile.executeUpdate();
 				
 				int affected = insertFile.getUpdateCount();
-				System.out.println("affected files" + affected);
-				
-				int key = -1;
 				ResultSet generatedKeys = insertFile.getGeneratedKeys();
-				if(generatedKeys.next()){
-					key = generatedKeys.getInt(1);
-					fileIds.put(f, key);
-					System.out.println("Generated file "+key);
+				if(generatedKeys.next() && affected > 0){
+					int generatedKey = generatedKeys.getInt(1);
+					fileIds.put(f, generatedKey);
 				}
 				else{
 					System.out.println("Generated no file id");
@@ -342,6 +343,61 @@ public class CommitInfoStore {
 	}
 	
 	
+	/**
+	 * Select the id's of the files in the database
+	 * @return
+	 */
+	public List<Integer> getAllFileIds(){
+		List<Integer> result = new ArrayList<Integer>();
+		try {
+			ResultSet resultSet = selectFiles.executeQuery();
+			while(resultSet.next()){
+				result.add(resultSet.getInt("id"));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+	/**
+	 * Select all chunks of a file.
+	 * @param file The id of the file
+	 * @return
+	 */
+	public List<UserChunk> getFileChunks(int file){
+		List<UserChunk> result = new ArrayList<UserChunk>(1000);
+		
+		try {
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+			
+			selectUserChunksOfFile.setInt(1, file);
+			ResultSet resultSet = selectUserChunksOfFile.executeQuery();
+			while(resultSet.next()){
+				int start 			= resultSet.getInt("start");
+				int end				= resultSet.getInt("end");
+				String when			= resultSet.getString("time");
+				GitFile gitfile 	= new GitFile();
+				gitfile.filePath	= resultSet.getString("file_path");
+				gitfile.head 		= resultSet.getString("head");
+				gitfile.repo		= resultSet.getString("repo");
+				Committer committer = new Committer();
+				committer.email 	= resultSet.getString("email");
+				committer.name  	= resultSet.getString("name");
+				committer.repo		= resultSet.getString("repo");
+				UserChunk userChunk = new UserChunk(GithubUtil.createUser(resultSet.getString("user")));
+				userChunk.committer	= committer;
+				userChunk.file		= gitfile;
+				userChunk.start		= start;
+				userChunk.end		= end;
+				userChunk.when		= dateFormat.parse(when);
+				result.add(userChunk);
+			}
+		} catch (SQLException | ParseException e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
 	
 	
 }

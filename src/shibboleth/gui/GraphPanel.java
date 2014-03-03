@@ -2,6 +2,7 @@ package shibboleth.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Font;
 
 import javax.swing.JPanel;
 
@@ -35,6 +36,7 @@ public class GraphPanel extends JPanel{
 		
         previewModel = previewController.getModel();
         previewModel.getProperties().putValue(PreviewProperty.SHOW_NODE_LABELS, Boolean.FALSE);
+        previewModel.getProperties().putValue(PreviewProperty.NODE_LABEL_FONT, new Font(Font.SANS_SERIF, Font.PLAIN, 4));
         previewModel.getProperties().putValue(PreviewProperty.NODE_LABEL_COLOR, new DependantOriginalColor(Color.WHITE));
         previewModel.getProperties().putValue(PreviewProperty.EDGE_CURVED, Boolean.FALSE);
         previewModel.getProperties().putValue(PreviewProperty.EDGE_OPACITY, 60);
@@ -43,7 +45,7 @@ public class GraphPanel extends JPanel{
         previewModel.getProperties().putValue(PreviewProperty.EDGE_THICKNESS, new Float(1.0f));
         previewModel.getProperties().putValue(PreviewProperty.NODE_LABEL_PROPORTIONAL_SIZE, Boolean.FALSE);
         previewModel.getProperties().putValue(PreviewProperty.EDGE_COLOR, new EdgeColor(new Color(255, 255, 255)));
-        previewModel.getProperties().putValue(PreviewProperty.NODE_BORDER_COLOR, new DependantColor(new Color(50,20,20)));
+        previewModel.getProperties().putValue(PreviewProperty.NODE_BORDER_COLOR, new DependantColor(new Color(48,10,36)));
         
         //previewModel.getProperties().putValue(PreviewProperty.NODE_LABEL_MAX_CHAR, new Integer(20));
         //previewModel.getProperties().putValue(PreviewProperty.NODE_LABEL_SHORTEN, Boolean.TRUE);

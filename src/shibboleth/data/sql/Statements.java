@@ -65,7 +65,7 @@ public class Statements {
 	
 	
 	public static final String selectContributions = 
-	"SELECT repo_name, user_name, count, percentage FROM Contributions " +
+	"SELECT id, repo_name, user_name, count, percentage FROM Contributions " +
 	"LEFT JOIN ContributionInfo ON Contributions.id = ContributionInfo.contribution_id " +
 	"WHERE repo_name=?;";
 	
@@ -162,6 +162,7 @@ public class Statements {
 	
 	/*******************************************/
 	
+	
 	public static String insertStoredLinks = 
 	"REPLACE INTO StoredLinks VALUES(?,?);";
 
@@ -176,7 +177,19 @@ public class Statements {
 	"SELECT * FROM StoredLinks WHERE name=?;";
 
 
-
+	/*******************************************/
 	
+	
+	public static String selectAllFiles = 
+	"SELECT id,repo,head,file_path FROM Files;";
+	
+	public static String selectUserChunksOfFile =
+	"SELECT RecordLinks.user, Chunks.`start`, Chunks.`end`, Chunks.`time`, Committers.email, Committers.name, Files.repo, Files.file_path, Files.head " +
+	"FROM RecordLinks " +
+	"JOIN Committers ON RecordLinks.committer=Committers.id " +
+	"JOIN Chunks ON Committers.id=Chunks.committer_id " +
+	"JOIN Files ON Chunks.file_id=Files.id " +
+	"WHERE Files.id=? " +
+	"ORDER BY Chunks.`start` ASC;";
 	
 }

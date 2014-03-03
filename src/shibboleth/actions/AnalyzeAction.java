@@ -53,7 +53,7 @@ public class AnalyzeAction extends ShibbolethAction {
 			
 			// analyze
 			Blamer b = new Blamer(repo.full_name, cloneDir, infoStore);
-			b.analyze();
+			b.blame();
 			
 			//link
 			List<RecordLink> links;
@@ -115,8 +115,7 @@ public class AnalyzeAction extends ShibbolethAction {
 			
 			int selectedAction = RecordLinkChooser.SAVED;
 			
-			
-			if(!(args.length>3 && args[3].equals("-s"))){
+			if(!(args.length>3 && args[3].equals("-s")) || worstSimilarity < accuracy){
 				selectedAction = RecordLinkChooser.evaluateLinks(links, linkUsers);
 			}
 			
