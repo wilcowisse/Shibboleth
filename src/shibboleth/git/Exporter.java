@@ -1,10 +1,7 @@
 package shibboleth.git;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -12,13 +9,9 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import shibboleth.data.sql.CommitInfoStore;
-import shibboleth.model.Chunk;
-import shibboleth.model.GitFile;
 import shibboleth.model.UserChunk;
 import shibboleth.util.BlameUtil;
 
@@ -36,8 +29,7 @@ public class Exporter {
 	 * Construct an exporter
 	 * @param exportPath The directory to export to
 	 * @param clonePath The directory where the cloned repos can be found.
-	 * @param chunks The list of chunks, <i>sorted on path and line start</i>.
-	 * @param fragmented Whether fragmented files will be accepted.
+	 * @param pathBlackList paths which must not be exported.
 	 */
 	public Exporter(File exportPath, File clonePath, List<String> pathBlackList){
 		this.exportPath = exportPath;
@@ -45,6 +37,12 @@ public class Exporter {
 		this.pathBlackList=pathBlackList;
 	}
 	
+	/**
+	 * Copies the file fragments of several repos to one location.
+	 * @param formattedChunks Chunks of one file, grouped by author. See also
+	 * {@link BlameUtil#format(List)}.
+	 * @throws IOException
+	 */
 	public void export(List<List<UserChunk>> formattedChunks) throws IOException{
 		assert formattedChunks.size() > 0;
 		assert formattedChunks.get(0).size() > 0;
@@ -58,18 +56,18 @@ public class Exporter {
 		if(pathBlackList.contains(first.file.filePath)){
 			return;
 		}
+		
 		Files.copy(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
 		
-		int i = 0;
-		for(List<UserChunk> formattedChunk : formattedChunks){
-			write(formattedChunk, i);
-			i++;
+		if(formattedChunks.size()>1){
+			int i = 0;
+			for(List<UserChunk> formattedChunk : formattedChunks){
+				write(formattedChunk, i);
+				i++;
+			}
 		}
-
 	}
 	
-	
-
 	private void write(List<UserChunk> chunks, int pos) throws IOException{
 		if(chunks.size() < 1)
 			return;

@@ -7,6 +7,11 @@ import shibboleth.model.UserChunk;
 
 public class BlameUtil {
 
+	/**
+	 * Groups the chunks of the same user together in lists.
+	 * @param chunks The chunks, each belonging to the same file.
+	 * @return A lists with lists which have chunks of the same user
+	 */
 	public static List<List<UserChunk>> format(List<UserChunk> chunks){
 		List<List<UserChunk>> result = new ArrayList<List<UserChunk>>();
 		

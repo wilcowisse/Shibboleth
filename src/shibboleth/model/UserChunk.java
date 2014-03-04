@@ -11,8 +11,7 @@ public class UserChunk extends Chunk{
 	
 	/**
 	 * Construct a UserChunk (i.e. a Chunk mapped to a User).
-	 * @param chunk The chunk
-	 * @param user
+	 * @param user The user belonging to this Chunk.
 	 */
 	public UserChunk(SimpleUser user){
 		this.user=user;

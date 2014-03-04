@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -345,7 +344,7 @@ public class CommitInfoStore {
 	
 	/**
 	 * Select the id's of the files in the database
-	 * @return
+	 * @return A list with all file id's.
 	 */
 	public List<Integer> getAllFileIds(){
 		List<Integer> result = new ArrayList<Integer>();
@@ -363,7 +362,7 @@ public class CommitInfoStore {
 	/**
 	 * Select all chunks of a file.
 	 * @param file The id of the file
-	 * @return
+	 * @return All chunks of the file with the given id.
 	 */
 	public List<UserChunk> getFileChunks(int file){
 		List<UserChunk> result = new ArrayList<UserChunk>(1000);

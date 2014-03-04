@@ -17,8 +17,8 @@ import shibboleth.model.GephiGraph;
 public class CliMain extends Main {
 	
 	public CliMain(){
-		initApp(createMySqlConnection("root", "pass"), new GephiGraph());
-		//initApp(createSqliteConnection("db/db.sqlite"), new GephiGraph());
+		//initApp(createMySqlConnection("root", "pass"), new GephiGraph());
+		initApp(createSqliteConnection("db/db.sqlite"), new GephiGraph());
 		
 		ActionListener cli = new CliActionListener();
 		ActionExecutor executor = new BasicActionExecutor();
@@ -38,7 +38,7 @@ public class CliMain extends Main {
 				System.exit(0);
 			}
 			else{
-				if(executor.doAction(command) == false){
+				if(executor.doAction(command) == false) {
 					System.out.println("Wrong syntax. Enter 'q' to quit.");
 				}
 				System.out.println();

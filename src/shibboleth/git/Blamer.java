@@ -2,8 +2,6 @@ package shibboleth.git;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 
 import org.eclipse.jgit.api.BlameCommand;
@@ -20,9 +18,7 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.TreeWalk;
 
-import shibboleth.data.DataSource;
 import shibboleth.data.sql.CommitInfoStore;
-import shibboleth.data.sql.SqlDataStore;
 import shibboleth.model.Chunk;
 import shibboleth.model.Committer;
 import shibboleth.model.GitFile;

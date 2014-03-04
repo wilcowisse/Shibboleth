@@ -3,7 +3,6 @@ package shibboleth.actions;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -65,7 +64,7 @@ public class ExportAction extends ShibbolethAction {
 	public void writeIndex(List<List<UserChunk>> formattedChunks) throws IOException{
 		UserChunk first = formattedChunks.get(0).get(0);
 		String subPath = first.committer.repo.replace('/', '-'); 
-		subPath += "-" + first.file.filePath;
+		subPath += "-" + first.file.filePath.replace('/', '-');
 		File indexFile = new File("export", subPath+".log");
 		File completeFile = new File("export", subPath+".complete");
 		
