@@ -25,23 +25,32 @@ public class GraphLayoutAction extends ShibbolethAction{
 		assert listener != null;
 		
 		if(args.length == 0){
-			graph.layout("yifanhu", 500);
-			listener.graphChanged("Layout graph: yifanhu 500", true);
+			execute("yifanhu", 2000);
 		}
 		else if(args.length == 1){
-			graph.layout(args[0], 500);
-			listener.graphChanged("Layout graph", true);
+			execute(args[0], 2000);
 		}
 		else if(args.length == 2){
-			listener.busyStateChanged(true);
-			graph.layout(args[0], Integer.parseInt(args[1]));
-			listener.busyStateChanged(false);
-			listener.graphChanged("Layout graph", true);
+			
+			int time=2000;
+			try{
+				time = Integer.parseInt(args[1]);
+			}
+			catch(NumberFormatException e){}
+			graph.layout(args[0], time);
+			
 		}
 		else{
 			listener.messagePushed("Wrong syntax");
 		}
 		
+	}
+	
+	public void execute(String layout, int time){
+		listener.busyStateChanged(true);
+		graph.layout(layout, time);
+		listener.graphChanged("Layout graph: "+layout+" "+time, true);
+		listener.busyStateChanged(false);
 	}
 
 	@Override

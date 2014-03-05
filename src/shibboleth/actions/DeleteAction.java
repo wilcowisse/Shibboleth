@@ -2,6 +2,7 @@ package shibboleth.actions;
 
 import shibboleth.data.DataStore;
 import shibboleth.model.GithubGraph;
+import shibboleth.util.GithubUtil;
 
 /**
  * Delete a repo or a user from the graph AND the given datastore.
@@ -24,23 +25,25 @@ public class DeleteAction extends ShibbolethAction{
 	@Override
 	public void execute(String[] args) {
 		if(args.length == 1){
-			String argument = args[0];
-			graph.remove(argument);
 			
-			if(argument.indexOf('/')==-1){
-				store.deleteUser(argument);
-			}
-			else{
-				store.deleteRepo(argument);
-			}	
-			
-			listener.graphChanged(String.format("Deleted %s:",argument), false);
 			
 		}
 		else{
 			listener.messagePushed("Wrong syntax");
 		}
-
+	}
+	
+	public void execute(String node){
+		graph.remove(node);
+		
+		if(GithubUtil.isUserName(node)){
+			store.deleteUser(node);
+		}
+		else{
+			store.deleteRepo(node);
+		}	
+		
+		listener.graphChanged(String.format("Deleted %s:",node), false);
 	}
 
 	@Override

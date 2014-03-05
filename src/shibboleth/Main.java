@@ -11,6 +11,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import shibboleth.actions.ActionExecutor;
 import shibboleth.actions.AnalyzeAction;
@@ -21,7 +22,7 @@ import shibboleth.actions.ExplodeAction;
 import shibboleth.actions.ExportAction;
 import shibboleth.actions.GephiAction;
 import shibboleth.actions.GetAction;
-import shibboleth.actions.GetInfoAction;
+import shibboleth.actions.InfoAction;
 import shibboleth.actions.HelpAction;
 import shibboleth.actions.HideAction;
 import shibboleth.actions.HighlightAction;
@@ -40,6 +41,7 @@ import shibboleth.data.github.GithubDataSource;
 import shibboleth.data.github.RateLimitValue;
 import shibboleth.data.sql.CommitInfoStore;
 import shibboleth.data.sql.SqlDataStore;
+import shibboleth.data.sql.SqlOperations;
 import shibboleth.data.sql.Statements;
 import shibboleth.gui.ActionListener;
 import shibboleth.model.GithubGraph;
@@ -57,9 +59,11 @@ public abstract class Main{
 	protected Connection connection;
 	protected GithubDataSource github;
 	protected SqlDataStore mysql;
-	protected DataSource githubCached,mysqlOnTopOfGithub, mysqlCachedReadOnly;
-	protected DataStore hashCache, mysqlStoreOnTopOfGithub;
+	protected DataSource githubCached,mysqlOnTopOfGithub, mysqlOnGithubReadOnly, mysqlOnCacheOnGithubReadOnly ;
+	protected DataStore hashCache, mysqlOnGithubStore;
 	protected CommitInfoStore infoStore;
+	protected SqlOperations sqlOperations;
+	
 	private ExeAction exeAction;
 	
 	public void initApp(Connection connection, GithubGraph graph){
@@ -106,13 +110,13 @@ public abstract class Main{
 		// Commit info store
 		infoStore = new CommitInfoStore(connection);
 		
-		// Datasource: github api
+		// SQL Operations
+		sqlOperations = new SqlOperations(connection);
+		
 		rate = new RateLimitValue();
 		
-		//if(proxy == Proxy.NO_PROXY)
+		// Datasource: github api
 		github = new GithubDataSource(rate);
-		//else
-		//github = new GithubDataSource(rate, proxy);
 		
 		// Datastore: hashmap cache 
 		hashCache = new HashMapStore();
@@ -124,16 +128,17 @@ public abstract class Main{
 		mysql = new SqlDataStore(connection);
 		
 		// Datasource: Mysql on top of github cache
-		mysqlOnTopOfGithub = new CachedSource(mysql, githubCached);
+		mysqlOnTopOfGithub = new CachedSource(mysql, github);
 		
 		// Datastore: Mysql on top of github cache
-		mysqlStoreOnTopOfGithub = new CachedStore(mysql, githubCached);
+		mysqlOnGithubStore = new CachedStore(mysql, github);
 		
 		// Datasource: Mysql on top of Github (readonly on db)
-		mysqlCachedReadOnly = new ReadOnlyCachedSource(mysql, githubCached);
+		mysqlOnGithubReadOnly = new ReadOnlyCachedSource(mysql, github);
 		
+		// Datasource: Mysql on top of Cache on top of Github
+		mysqlOnCacheOnGithubReadOnly = new ReadOnlyCachedSource(mysql, githubCached);
 		
-				
 	}
 	
 	public void initActions(ActionListener listener, ActionExecutor executor){
@@ -147,7 +152,7 @@ public abstract class Main{
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
-		new GetInfoAction(mysqlCachedReadOnly)
+		new InfoAction(mysqlOnCacheOnGithubReadOnly)
 			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
@@ -187,7 +192,7 @@ public abstract class Main{
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
-		new AnalyzeAction(mysqlOnTopOfGithub, github, infoStore)
+		new AnalyzeAction(mysqlOnTopOfGithub, github, infoStore, sqlOperations)
 			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
@@ -207,7 +212,7 @@ public abstract class Main{
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
-		new ExportAction(infoStore)
+		new ExportAction(sqlOperations)
 			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
@@ -258,7 +263,7 @@ public abstract class Main{
 				i=i+3;
 			}
 			else{
-				System.out.println("Read token: " + arg);
+				System.out.println("Unknown param: " + arg);
 				System.out.println("Usage: java -jar Shibboleth.jar [-cli|-gui|-crawl] [-proxy host port]");
 				System.exit(0);
 			}
@@ -290,6 +295,37 @@ public abstract class Main{
 			new CrawlMain();
 		}
 		
+		
+	}
+	
+	/**
+	 * Suspend application till rate limit value reset time.
+	 * @param rate RateLimitValue to sleep for.
+	 */
+	public static void suspend(RateLimitValue rate){
+		System.out.println("Request remaining: "+rate.getRemaining());
+		System.out.println("Bye... Gonna sleep. Zzzzzzz...");
+		
+		long expireDate = rate.getReset().getTime();
+		long wakeupInterval = TimeUnit.MINUTES.toMillis(5);
+		long lateNess = TimeUnit.SECONDS.toMillis(30);
+		long now = System.currentTimeMillis();
+		long wait = expireDate+lateNess-now;
+		
+		while(wait > 0) {
+			System.out.println("Time remaining: "+ TimeUnit.MILLISECONDS.toMinutes(wait) + " minutes");
+			long sleepTime = Math.min(wait, wakeupInterval);
+			try {
+				TimeUnit.MILLISECONDS.sleep(sleepTime);
+			} catch (InterruptedException e) {
+				System.err.println("Sleep error");
+				e.printStackTrace();
+				System.exit(1);
+			}
+			
+			now = System.currentTimeMillis();
+			wait = expireDate+lateNess-now;
+		}
 		
 	}
 	

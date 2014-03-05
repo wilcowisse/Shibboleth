@@ -22,16 +22,18 @@ public class TokenAction extends ShibbolethAction {
 	@Override
 	public void execute(String[] args) {
 		if(args.length == 1){
-			github.setAccessToken(args[0]);
-			listener.messagePushed("Set Github access token: "+args[0]);
+			execute(args[0]);
 		}
 		else {
 			listener.messagePushed("Wrong syntax");
 		}
-		
-		
 	}
 
+	public void execute(String token){
+		github.setAccessToken(token);
+		listener.messagePushed("Set Github access token: "+token);
+	}
+	
 	@Override
 	public String getCommand() {
 		return "token";

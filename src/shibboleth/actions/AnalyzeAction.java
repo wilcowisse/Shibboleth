@@ -9,6 +9,7 @@ import java.util.List;
 import shibboleth.data.DataSource;
 import shibboleth.data.github.GithubDataSource;
 import shibboleth.data.sql.CommitInfoStore;
+import shibboleth.data.sql.SqlOperations;
 import shibboleth.git.Blamer;
 import shibboleth.git.Cloner;
 import shibboleth.git.CommitLinker;
@@ -30,20 +31,32 @@ public class AnalyzeAction extends ShibbolethAction {
 	private DataSource source;
 	private GithubDataSource github;
 	private CommitInfoStore infoStore;
+	private SqlOperations sqlOperations;
 	
-	public AnalyzeAction(DataSource source, GithubDataSource github, CommitInfoStore infoStore){
+	public AnalyzeAction(DataSource source, GithubDataSource github, CommitInfoStore infoStore, SqlOperations sqlOp){
 		this.source=source;
 		this.infoStore=infoStore;
 		this.github=github;
+		this.sqlOperations=sqlOp;
 	}
 	
 	@Override
 	public void execute(String[] args) {
 		if(args.length>2){
 			String type = args[0];
-			
 			String repoName = args[1];
 			double accuracy = Double.parseDouble(args[2]);
+			boolean silent = args.length>3 && args[3].equals("-s");
+			execute(type, repoName, accuracy, silent);
+		}
+		else{
+			listener.messagePushed("Wrong syntax");
+		}	
+
+	}
+	
+	public void execute(String type, String repoName, double accuracy, boolean silent){
+
 			
 			Repo repo = source.getRepo(repoName);
 			Cloner cloner = new Cloner("clones");
@@ -61,7 +74,7 @@ public class AnalyzeAction extends ShibbolethAction {
 			List<User> users = new ArrayList<User>();
 			if(type.equals("jaro")){
 				users = getUsers(repoName);
-				List<Committer> committers = infoStore.getCommitters(repoName);
+				List<Committer> committers = sqlOperations.getCommitters(repoName);
 				Linker linker = new JaroWinklerLinker(committers, users, accuracy);
 				links = linker.link();
 			}
@@ -71,7 +84,7 @@ public class AnalyzeAction extends ShibbolethAction {
 				links=linker.link();
 			}
 			else if(type.equals("saved")){
-				links=infoStore.getRecordLinks(repoName);
+				links=sqlOperations.getRecordLinks(repoName);
 			}
 			else{
 				listener.messagePushed("Wrong syntax");
@@ -115,7 +128,7 @@ public class AnalyzeAction extends ShibbolethAction {
 			
 			int selectedAction = RecordLinkChooser.SAVED;
 			
-			if(!(args.length>3 && args[3].equals("-s")) || worstSimilarity < accuracy){
+			if(!silent || worstSimilarity < accuracy){
 				selectedAction = RecordLinkChooser.evaluateLinks(links, linkUsers);
 			}
 			
@@ -139,11 +152,8 @@ public class AnalyzeAction extends ShibbolethAction {
 				}
 			}
 			
-		}
-		else{
-			listener.messagePushed("Wrong syntax");
-		}
-
+		
+		
 	}
 	
 	private List<User> getUsers(String repo) {

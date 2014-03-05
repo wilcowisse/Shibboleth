@@ -156,6 +156,7 @@ public class Statements {
 	public static final String insertRecordLink = 
 	"REPLACE INTO RecordLinks VALUES (?,?);";
 	
+	
 	public static final String deleteRecordLink = 
 	"DELETE FROM RecordLinks WHERE committer=?;";
 	

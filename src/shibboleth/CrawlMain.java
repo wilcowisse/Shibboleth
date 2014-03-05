@@ -52,7 +52,8 @@ public class CrawlMain extends Main {
 		ActionExecutor executor = new BasicActionExecutor();
 		initActions(cli, executor);
 		
-		CrawlSource crawlSource = new CrawlSource(mysql, github);
+		// CrawlSource
+		CrawlSource	crawlSource = new CrawlSource(mysql, github);
 		
 		CrawlGetAction crawlGet = new CrawlGetAction(crawlSource, graph);
 		crawlGet.addActionListener(cli);

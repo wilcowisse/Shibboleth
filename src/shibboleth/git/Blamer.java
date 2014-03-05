@@ -91,7 +91,9 @@ public class Blamer {
 				RawText raw = blameResult.getResultContents();
 				for(int i=0; i<raw.size(); i++){
 					PersonIdent newIdent = blameResult.getSourceAuthor(i);
-					if(newIdent.equals(currentIdent) && currentChunk != null){
+					
+					
+					if((newIdent==null || newIdent.equals(currentIdent)) && currentChunk != null){
 						currentChunk.end++;
 					}
 					else{

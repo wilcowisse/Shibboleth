@@ -28,7 +28,6 @@ public class ExplodeAction extends ShibbolethAction{
 	private DataSource source;
 	private GithubGraph graph;
 	private RepoFilter filter;
-	private boolean ensureAll;
 	
 	private List<String> explodedUsers;
 	private List<String> explodedRepos;
@@ -40,23 +39,13 @@ public class ExplodeAction extends ShibbolethAction{
 	public ExplodeAction(DataSource source, GithubGraph graph){
 		this.source=source;
 		this.graph=graph;
+		this.filter = new JavaScriptFilter();
 	}
 	
 	@Override
 	public void execute(String[] args) {
 		if(args.length > 1){
-			explodedUsers = new ArrayList<String>();
-			explodedRepos = new ArrayList<String>();
-			explodedContributions = new ArrayList<Contribution>();
-			nodeDepths = new HashMap<String, Integer>();
-			bfsQueue = new LinkedList<String>();
-			ensureAll = false;
-			if(args.length==3 && "-a".equals(args[2]))
-				ensureAll=true;
-			
-			String argument = args[0];
-			filter = new JavaScriptFilter();
-			
+			String node = args[0];
 			int depth = 0;
 			try{
 				depth = Integer.parseInt(args[1]);
@@ -64,22 +53,34 @@ public class ExplodeAction extends ShibbolethAction{
 			catch(NumberFormatException e){
 				depth = 0;
 			}
+			boolean ensureAll = args.length==3 && "-a".equals(args[2]);
 			
-			explode(argument,depth);
+			execute(node, depth, ensureAll);
 			
-			for(Contribution c : explodedContributions) {
-				graph.addContribution(c);
-			}
-			
-			listener.graphChanged("Exploded "+ explodedUsers.size() + " users and " +  explodedRepos.size() + " repos", false);
-			
-			explodedUsers.clear();
-			explodedRepos.clear();
-			explodedContributions.clear();
 		}
 		else {
 			listener.messagePushed("Wrong syntax!");
 		}
+	}
+	
+	public void execute(String node, int depth, boolean ensureAll){
+		explodedUsers = new ArrayList<String>();
+		explodedRepos = new ArrayList<String>();
+		explodedContributions = new ArrayList<Contribution>();
+		nodeDepths = new HashMap<String, Integer>();
+		bfsQueue = new LinkedList<String>();
+
+		explode(node,depth, ensureAll);
+		
+		for(Contribution c : explodedContributions) {
+			graph.addContribution(c);
+		}
+		
+		listener.graphChanged("Exploded "+ explodedUsers.size() + " users and " +  explodedRepos.size() + " repos", false);
+		
+		explodedUsers.clear();
+		explodedRepos.clear();
+		explodedContributions.clear();
 	}
 
 	@Override
@@ -88,7 +89,7 @@ public class ExplodeAction extends ShibbolethAction{
 	}
 	
 	
-	public void explode(String node, int depth){
+	public void explode(String node, int depth, boolean ensureAll){
 		bfsQueue.add(node);
 		nodeDepths.put(node, 0);
 		
@@ -101,7 +102,7 @@ public class ExplodeAction extends ShibbolethAction{
 				//System.out.println("Visit " + head + " at depth "+currentDepth);
 				
 				if(currentDepth<depth) {
-					for(String child : getChildren(head)){
+					for(String child : getChildren(head, ensureAll)){
 						//System.out.println("added " + child + " to queue");
 						nodeDepths.put(child, currentDepth+1);
 						bfsQueue.add(child);
@@ -131,7 +132,7 @@ public class ExplodeAction extends ShibbolethAction{
 		}
 	}
 	
-	public String[] getChildren(String node){
+	public String[] getChildren(String node, boolean ensureAll){
 		if(GithubUtil.isUserName(node)){
 			List<Repo>  reposByUser = source.getRepos(node, filter, ensureAll);
 			List<Contribution> cs = GithubUtil.reposToContributions(reposByUser, GithubUtil.createUser(node));

@@ -32,7 +32,7 @@ public class CliMain extends Main {
 			if(command.equals("")){
 				// do nothing
 			}
-			else if (command.equals("q")){
+			else if(command.equals("q")){
 				close();
 				scanner.close();
 				System.exit(0);

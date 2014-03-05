@@ -14,18 +14,23 @@ public class GephiAction extends ShibbolethAction {
 	
 	@Override
 	public void execute(String[] args) {
-		if(args.length==1){
-			String filename = args[0];
-			if(filename.indexOf('.') == -1){
-				filename+="gexf";
-			}
-			
-			File path = new File(filename);
-			
-			graph.export(path);
-			
-			listener.messagePushed("Saved graph at " + path.getAbsolutePath());
+		if(args.length>0){
+			String fileName = args[0];
+			execute(fileName);
 		}
+		else{
+			listener.messagePushed("Wrong syntax");
+		}
+	}
+	
+	public void execute(String filename){
+		if(filename.indexOf('.') == -1){
+			filename+=".gexf";
+		}
+		
+		File path = new File(filename);
+		graph.export(path);
+		listener.messagePushed("Saved graph at " + path.getAbsolutePath());
 	}
 	
 	@Override

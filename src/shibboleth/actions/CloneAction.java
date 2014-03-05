@@ -5,6 +5,7 @@ import shibboleth.git.Blamer;
 import shibboleth.git.Cloner;
 import shibboleth.git.JaroWinklerLinker;
 import shibboleth.model.Repo;
+import shibboleth.util.GithubUtil;
 
 /**
  * Clone a repository into the 'clones' directory, then analyze and link the repository.
@@ -27,25 +28,31 @@ public class CloneAction extends ShibbolethAction{
 	
 	@Override
 	public void execute(String[] args) {
-		if(args.length == 1){
-			listener.busyStateChanged(true);
-			Repo repo = source.getRepo(args[0]);
-			
-			// clone
-			if(repo != null){
-				Cloner cloner = new Cloner("clones");
-				if(cloner.clone(repo)!=null)
-					listener.messagePushed("Cloned repo " + repo.full_name);
-				else
-					listener.messagePushed("Cloning failed!");
-			}
-			else{
-				listener.messagePushed("Repo not found on github!");
-			}
-			
-			listener.busyStateChanged(false);
+		if(args.length == 1 && GithubUtil.isRepoName(args[0])){
+			execute(args[0]);
+		}
+		else{
+			listener.messagePushed("Wrong syntax!");
 		}
 		
+	}
+	
+	public void execute(String repoName){
+		listener.busyStateChanged(true);
+		Repo repo = source.getRepo(repoName);
+		
+		if(repo != null){
+			Cloner cloner = new Cloner("clones");
+			if(cloner.clone(repo)!=null)
+				listener.messagePushed("Cloned repo " + repo.full_name);
+			else
+				listener.messagePushed("Cloning failed!");
+		}
+		else{
+			listener.messagePushed("Repo not found on github!");
+		}
+		
+		listener.busyStateChanged(false);
 	}
 
 	@Override

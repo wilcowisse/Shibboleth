@@ -1,5 +1,6 @@
 package shibboleth.actions;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import shibboleth.data.DataSource;
@@ -62,7 +63,8 @@ public class GetAction extends ShibbolethAction{
 			}
 			else{
 				Repo repo = source.getRepo(argument);
-				requestContributions(repo, false);
+				if(repo != null)
+					requestContributions(repo, false);
 			}	
 		}
 		else if(args.length > 1 && args[0].equals("ca")) {
@@ -78,32 +80,40 @@ public class GetAction extends ShibbolethAction{
 			}
 			else{
 				Repo repo = source.getRepo(argument);
-				requestContributions(repo, true);
+				if(repo != null)
+					requestContributions(repo, true);
 			}
 		}
 		else if(args.length > 1 && args[0].equals("cu")) {
 			String argument = args[1];
 			if(GithubUtil.isRepoName(argument)){
 				Repo repo = source.getRepo(argument);
-				List<Contribution> cs = source.getContributions(repo.full_name, false);
-				for(Contribution c : cs)
-					source.getUser(c.getUser().login);
+				getUsers(repo);
 			}
 		}
 		else {
 			listener.messagePushed("Wrong syntax");
 		}
 	}
+
+	public List<User> getUsers(SimpleRepo repo){
+		List<User> users = new ArrayList<User>();
+		List<Contribution> cs = source.getContributions(repo.full_name, true);
+		for(Contribution c : cs)
+			users.add(source.getUser(c.getUser().login));
+		return users;
+	}
 	
-	public void requestAllContributions(){
+	public List<Contribution> requestAllContributions(){
 		List<Contribution> cs = source.getAllContributions();
 		for(Contribution c : cs)
 			graph.addContribution(c);
 		
 		listener.graphChanged("Added all contributions.", false);
+		return cs;
 	}
 	
-	public void requestContributions(SimpleUser u, RepoFilter filter, boolean ensureAll){
+	public List<Repo> requestContributions(SimpleUser u, RepoFilter filter, boolean ensureAll){
 		if(u != null){
 			List<Repo> rs = source.getRepos(u.login, filter, ensureAll);
 			
@@ -113,67 +123,50 @@ public class GetAction extends ShibbolethAction{
 			}
 			
 			listener.graphChanged("Added " + rs.size() +" contributions of "+u.login, false);
-			
+			return rs;
 		}
 		else{
-			try {
-				throw new Exception("User not found!");
-			} catch (Exception e) {
-				if(listener != null)
-					listener.errorOccurred(e, false);
-				else
-					System.out.println(e.getMessage());
-			}
+			return null;
 		}
 	}
 	
-	public void requestContributions(SimpleRepo r, boolean ensureAll){
+	public List<Contribution> requestContributions(SimpleRepo r, boolean ensureAll){
 		if(r != null){
 			List<Contribution> cs = source.getContributions(r.full_name, ensureAll);
 			for(Contribution c : cs)
 				graph.addContribution(c);
 			
 			listener.graphChanged("Added " + cs.size() +" contributions for "+r.full_name, false);
-			
+			return cs;
 		}
 		else{
-			try {
-				throw new Exception("Repo not found!");
-			} catch (Exception e) {
-				listener.errorOccurred(e, false);
-			}
+			return null;
 		}
+		
 	}
 	
-	public void requestUser(String userName){
+	public User requestUser(String userName){
 		User u = source.getUser(userName);
 		if(u != null){
 			graph.add(u);
 			listener.graphChanged("Added user "+userName, false);
 		}
 		else{
-			try {
-				throw new Exception("User not found!");
-			} catch (Exception e) {
-				listener.errorOccurred(e, false);
-			}
+			listener.messagePushed("User "+userName+" not found!");
 		}
+		return u;
 	}
 	
-	public void requestRepo(String repoName){
+	public Repo requestRepo(String repoName){
 		Repo r = source.getRepo(repoName);
-		
 		if(r != null){
 			graph.add(r);
 			listener.graphChanged("Added repo "+repoName, false);
 		}
 		else{
-			try {
-				throw new Exception("Repo not found!");
-			} catch (Exception e) {
-				listener.errorOccurred(e, false);
-			}
+			listener.messagePushed("Repo "+repoName+" not found!");
 		}
+		return r;
 	}
 
 	@Override
