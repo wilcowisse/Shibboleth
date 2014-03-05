@@ -1,0 +1,14 @@
+*.class
+*.*~
+.project
+.classpath
+bin/*
+clones/*
+!clones/empty
+commands/*
+!commands/empty
+db/*
+!db/*.sql
+export/*
+!export/_blacklist.txt
+
