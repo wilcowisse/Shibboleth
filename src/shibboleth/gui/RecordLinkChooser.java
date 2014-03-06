@@ -133,7 +133,7 @@ public class RecordLinkChooser extends JDialog implements ListSelectionListener,
 		setTitle("Evaluate record links");
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-		setIconImage(Toolkit.getDefaultToolkit().getImage("icon.png"));
+		setIconImage(Toolkit.getDefaultToolkit().getImage("assets/icon.png"));
 		getRootPane().setDefaultButton(applyButton);
 		setVisible(true);
 	}

@@ -39,7 +39,7 @@ import shibboleth.data.HashMapStore;
 import shibboleth.data.ReadOnlyCachedSource;
 import shibboleth.data.github.GithubDataSource;
 import shibboleth.data.github.RateLimitValue;
-import shibboleth.data.sql.CommitInfoStore;
+import shibboleth.data.sql.BlameInfoStore;
 import shibboleth.data.sql.SqlDataStore;
 import shibboleth.data.sql.SqlOperations;
 import shibboleth.data.sql.Statements;
@@ -59,9 +59,9 @@ public abstract class Main{
 	protected Connection connection;
 	protected GithubDataSource github;
 	protected SqlDataStore mysql;
-	protected DataSource githubCached,mysqlOnTopOfGithub, mysqlOnGithubReadOnly, mysqlOnCacheOnGithubReadOnly ;
+	protected DataSource githubCached,mysqlOnGithub, mysqlOnGithubReadOnly, mysqlOnCacheOnGithubReadOnly ;
 	protected DataStore hashCache, mysqlOnGithubStore;
-	protected CommitInfoStore infoStore;
+	protected BlameInfoStore infoStore;
 	protected SqlOperations sqlOperations;
 	
 	private ExeAction exeAction;
@@ -105,10 +105,10 @@ public abstract class Main{
 	}
 	
 	
-	public void initIO(){
+	private void initIO(){
 		
 		// Commit info store
-		infoStore = new CommitInfoStore(connection);
+		infoStore = new BlameInfoStore(connection);
 		
 		// SQL Operations
 		sqlOperations = new SqlOperations(connection);
@@ -128,7 +128,7 @@ public abstract class Main{
 		mysql = new SqlDataStore(connection);
 		
 		// Datasource: Mysql on top of github cache
-		mysqlOnTopOfGithub = new CachedSource(mysql, github);
+		mysqlOnGithub = new CachedSource(mysql, github);
 		
 		// Datastore: Mysql on top of github cache
 		mysqlOnGithubStore = new CachedStore(mysql, github);
@@ -142,7 +142,6 @@ public abstract class Main{
 	}
 	
 	public void initActions(ActionListener listener, ActionExecutor executor){
-		
 		exeAction = new ExeAction(rate);
 		exeAction.addActionListener(listener);
 		executor.addAction(exeAction);
@@ -162,7 +161,7 @@ public abstract class Main{
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
-		new GetAction(mysqlOnTopOfGithub, graph)
+		new GetAction(mysqlOnGithub, graph)
 			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
@@ -187,17 +186,17 @@ public abstract class Main{
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
-		new CloneAction(mysqlOnTopOfGithub)
+		new CloneAction(mysqlOnGithub)
 			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
-		new AnalyzeAction(mysqlOnTopOfGithub, github, infoStore, sqlOperations)
+		new AnalyzeAction(mysqlOnGithub, github, infoStore, sqlOperations)
 			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
 		
-		new ExplodeAction(mysqlOnTopOfGithub, graph)
+		new ExplodeAction(mysqlOnGithub, graph)
 			.addActionListener(listener)
 			.addExecutor(executor)
 			.addExecutor(exeAction);
@@ -269,23 +268,9 @@ public abstract class Main{
 			}
 		}
 		
-		if(!proxy.equals(Proxy.NO_PROXY)){
-			System.out.println("Using proxy " + proxy);
-			final Proxy proxy2 = proxy;
-			ProxySelector.setDefault(new ProxySelector() {
-				@Override
-				public List<Proxy> select(URI uri) {
-					return Arrays.asList(proxy2);
-				}
-				@Override
-				public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
-					ioe.printStackTrace();
-				}
-			});
-		}
+		useProxy(proxy);
 			
 		if(startupType.equals("gui")){
-			
 			new GuiMain();
 		}
 		else if(startupType.equals("cli")){
@@ -327,6 +312,26 @@ public abstract class Main{
 			wait = expireDate+lateNess-now;
 		}
 		
+	}
+	
+	/**
+	 * Set default proxy server.
+	 * @param proxy
+	 */
+	public static void useProxy(final Proxy proxy){
+		if(!proxy.equals(Proxy.NO_PROXY)){
+			System.out.println("Using proxy " + proxy);
+			ProxySelector.setDefault(new ProxySelector() {
+				@Override
+				public List<Proxy> select(URI uri) {
+					return Arrays.asList(proxy);
+				}
+				@Override
+				public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
+					ioe.printStackTrace();
+				}
+			});
+		}
 	}
 	
 	

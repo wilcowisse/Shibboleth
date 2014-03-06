@@ -3,8 +3,6 @@ package shibboleth.actions;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-
 import shibboleth.Main;
 import shibboleth.data.github.RateLimitValue;
 

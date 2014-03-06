@@ -1,10 +1,8 @@
 package shibboleth.actions;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -13,7 +11,6 @@ import java.util.List;
 import shibboleth.data.sql.SqlOperations;
 import shibboleth.git.Exporter;
 import shibboleth.model.UserChunk;
-import shibboleth.util.BlameUtil;
 
 public class ExportAction extends ShibbolethAction {
 

@@ -181,10 +181,14 @@ public class Statements {
 	/*******************************************/
 	
 	
-	public static String selectAllFiles = 
+	public static final String selectAllFiles = 
 	"SELECT id,repo,head,file_path FROM Files;";
 	
-	public static String selectUserChunksOfFile =
+	public static String selectFilesOfRepo = 
+	"SELECT id,repo,head,file_path FROM Files WHERE repo=?;";
+	
+	
+	public static final String selectUserChunksOfFile =
 	"SELECT RecordLinks.user, Chunks.`start`, Chunks.`end`, Chunks.`time`, Committers.email, Committers.name, Files.repo, Files.file_path, Files.head " +
 	"FROM RecordLinks " +
 	"JOIN Committers ON RecordLinks.committer=Committers.id " +
@@ -192,5 +196,7 @@ public class Statements {
 	"JOIN Files ON Chunks.file_id=Files.id " +
 	"WHERE Files.id=? " +
 	"ORDER BY Chunks.`start` ASC;";
+
+	
 	
 }

@@ -1,6 +1,5 @@
 *.class
 *.*~
-.project
 .classpath
 bin/*
 clones/*
@@ -11,4 +10,6 @@ db/*
 !db/*.sql
 export/*
 !export/_blacklist.txt
-
+assets/dbs
+assets/graphs
+assets/*.log

@@ -20,7 +20,13 @@ import shibboleth.util.GithubUtil;
 
 public class SqlOperations {
 	
-	private PreparedStatement selectCommittersByRepo, selectRecordLinksByRepo, selectUserChunksOfFile, selectFiles;
+	private PreparedStatement 
+		  selectCommittersByRepo
+		, selectRecordLinksByRepo
+		, selectUserChunksOfFile
+		, selectFiles
+		, selectFilesOfRepo
+	;
 
 
 	public SqlOperations(Connection connection){
@@ -29,6 +35,7 @@ public class SqlOperations {
 			selectRecordLinksByRepo =  connection.prepareStatement(Statements.selectRecordLinksByRepo);
 			selectUserChunksOfFile	=  connection.prepareStatement(Statements.selectUserChunksOfFile);
 			selectFiles				=  connection.prepareStatement(Statements.selectAllFiles);
+			selectFilesOfRepo		=  connection.prepareStatement(Statements.selectFilesOfRepo);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -92,6 +99,25 @@ public class SqlOperations {
 		List<Integer> result = new ArrayList<Integer>();
 		try {
 			ResultSet resultSet = selectFiles.executeQuery();
+			while(resultSet.next()){
+				result.add(resultSet.getInt("id"));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+	/**
+	 * Select the id's of the files of the given repo.
+	 * @param repo The repo.
+	 * @return File id's of the repo.
+	 */
+	public List<Integer> getFileIdsOfRepo(String repo){
+		List<Integer> result = new ArrayList<Integer>();
+		try {
+			selectFilesOfRepo.setString(1, repo);
+			ResultSet resultSet = selectFilesOfRepo.executeQuery();
 			while(resultSet.next()){
 				result.add(resultSet.getInt("id"));
 			}

@@ -18,7 +18,6 @@ public class BlameUtil {
 		UserChunk lastChunk = null;
 		List<UserChunk> lastList = new ArrayList<UserChunk>();
 		for(UserChunk chunk : chunks) {
-			//assert chunk.follows(lastChunk);
 			assert lastChunk == null || chunk.hasSameFileAs(lastChunk);
 			if(chunk.hasSameUserAs(lastChunk) && chunk.follows(lastChunk)){
 				lastList.add(chunk);

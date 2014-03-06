@@ -18,7 +18,7 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.TreeWalk;
 
-import shibboleth.data.sql.CommitInfoStore;
+import shibboleth.data.sql.BlameInfoStore;
 import shibboleth.model.Chunk;
 import shibboleth.model.Committer;
 import shibboleth.model.GitFile;
@@ -37,7 +37,7 @@ public class Blamer {
 	private File directory;
 	private String repo;
 
-	private CommitInfoStore infoStore;
+	private BlameInfoStore infoStore;
 	
 	/**
 	 * Construct an analyzer for the <tt>repo</tt> in the given <tt>directory</tt>
@@ -45,7 +45,7 @@ public class Blamer {
 	 * @param directory The directory the repo is cloned to.
 	 * @param infoStore The commitInfoStore to store analyzed data into.
 	 */
-	public Blamer(String repo, File directory, CommitInfoStore infoStore){
+	public Blamer(String repo, File directory, BlameInfoStore infoStore){
 		this.directory = directory;
 		this.repo = repo;
 		this.infoStore=infoStore;
@@ -91,9 +91,11 @@ public class Blamer {
 				RawText raw = blameResult.getResultContents();
 				for(int i=0; i<raw.size(); i++){
 					PersonIdent newIdent = blameResult.getSourceAuthor(i);
-					
-					
-					if((newIdent==null || newIdent.equals(currentIdent)) && currentChunk != null){
+					if(newIdent==null){
+						currentChunk=null;
+						currentIdent=null;
+					}
+					else if(newIdent.equals(currentIdent) && currentChunk != null){
 						currentChunk.end++;
 					}
 					else{

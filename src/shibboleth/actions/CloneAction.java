@@ -28,8 +28,17 @@ public class CloneAction extends ShibbolethAction{
 	
 	@Override
 	public void execute(String[] args) {
-		if(args.length == 1 && GithubUtil.isRepoName(args[0])){
-			execute(args[0]);
+		if(args.length > 0 && GithubUtil.isRepoName(args[0])){
+			int interval = 0;
+			if(args.length>1){
+				try{
+					interval=Integer.parseInt(args[1]);
+				}
+				catch(NumberFormatException e){
+					interval=0;
+				}
+			}
+			execute(args[0], interval);
 		}
 		else{
 			listener.messagePushed("Wrong syntax!");
@@ -37,13 +46,17 @@ public class CloneAction extends ShibbolethAction{
 		
 	}
 	
-	public void execute(String repoName){
-		listener.busyStateChanged(true);
+	
+	public void execute(String repoName, int interval){
 		Repo repo = source.getRepo(repoName);
-		
+		execute(repo, interval);
+	}
+	
+	public void execute(Repo repo, int interval){
+		listener.busyStateChanged(true);
 		if(repo != null){
 			Cloner cloner = new Cloner("clones");
-			if(cloner.clone(repo)!=null)
+			if(cloner.clone(repo) != null)
 				listener.messagePushed("Cloned repo " + repo.full_name);
 			else
 				listener.messagePushed("Cloning failed!");

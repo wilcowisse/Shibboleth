@@ -41,7 +41,7 @@ public class GuiActionListener implements ActionListener{
 			f.setLocationRelativeTo(null);
 			f.setExtendedState(JFrame.MAXIMIZED_BOTH);
 			f.setTitle("Shibboleth Explorer");
-			f.setIconImage(Toolkit.getDefaultToolkit().getImage("icon.png"));
+			f.setIconImage(Toolkit.getDefaultToolkit().getImage("assets/icon.png"));
 
 			Container contentPane = f.getContentPane();
 			contentPane.setLayout(new BorderLayout());

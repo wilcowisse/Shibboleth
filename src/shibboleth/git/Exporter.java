@@ -34,6 +34,7 @@ public class Exporter {
 	public Exporter(File exportPath, File clonePath, List<String> blackList){
 		this.exportPath = exportPath;
 		this.clonePath = clonePath;
+		this.blackList=blackList;
 	}
 	
 	/**
@@ -47,21 +48,27 @@ public class Exporter {
 		
 		UserChunk first = fileChunks.get(0);
 		
-		if(blackList.contains(first.file.filePath))
+		if(blackList.contains(first.file.filePath)){
+			System.out.println(" Blacklisted " + first.file.filePath + " (Blacklisted)");
 			return;
-		
+		}
+		if(first.file.filePath.contains("test")){
+			System.out.println(" Blacklisted " + first.file.filePath + " (Test)");
+			return;
+		}
 		if(fileChunks.size() == 1) { // file completely written in one commit...
-			System.out.println(" Blacklisted " + first.file.filePath + "(One commit)");
+			System.out.println(" Blacklisted " + first.file.filePath + " (One commit)");
 			return;
 		}
-		
 		for(String suspect : suspectlist){
-			if(first.file.filePath.contains(suspect) && fileChunks.size()<3)
+			if(first.file.filePath.contains(suspect) && fileChunks.size()<3){
+				System.out.println(" Blacklisted " + first.file.filePath + " (Suspect)");
 				return;
+			}
 		}
+		
 		
 		List<List<UserChunk>> formattedChunks = BlameUtil.format(fileChunks);
-		
 		
 		if(formattedChunks.size() > 0) { // can be 0 when a file is completely written by an unknown user...
 			String source="clones" + "/" + 
@@ -151,7 +158,7 @@ public class Exporter {
 	 * @throws IOException
 	 */
 	public void writeLog(List<List<UserChunk>> formattedChunks, File copyDestFile) throws IOException{
-		File indexFile = new File("export", "similarity.log");
+		File indexFile = new File("export", "blameinfo.log");
 		
 		BufferedWriter bw = new BufferedWriter(new FileWriter(indexFile, true));
 	    

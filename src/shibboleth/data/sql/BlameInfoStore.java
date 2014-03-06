@@ -26,7 +26,7 @@ import shibboleth.model.UnknownUser;
  * @author Wilco Wisse
  *
  */
-public class CommitInfoStore {
+public class BlameInfoStore {
 	
 	private PreparedStatement insertFile, insertCommitter, insertChunk,insertRecordLink;
 	private PreparedStatement selectCommitterId, selectFileId, selectChunkId;
@@ -43,7 +43,7 @@ public class CommitInfoStore {
 	 * Construct with given connection
 	 * @param connection
 	 */
-	public CommitInfoStore(Connection connection){
+	public BlameInfoStore(Connection connection){
 		
 		try {
 			insertFile			 	=  connection.prepareStatement(Statements.insertFile, Statement.RETURN_GENERATED_KEYS);

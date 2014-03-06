@@ -8,7 +8,7 @@ import java.util.List;
 
 import shibboleth.data.DataSource;
 import shibboleth.data.github.GithubDataSource;
-import shibboleth.data.sql.CommitInfoStore;
+import shibboleth.data.sql.BlameInfoStore;
 import shibboleth.data.sql.SqlOperations;
 import shibboleth.git.Blamer;
 import shibboleth.git.Cloner;
@@ -28,12 +28,16 @@ import shibboleth.util.GithubUtil;
 
 public class AnalyzeAction extends ShibbolethAction {
 
+	public static final int PROMPT_ALWAYS=0;
+	public static final int PROMPT_NEVER=1;
+	public static final int PROMPT_UNLINKED=0;
+	
 	private DataSource source;
 	private GithubDataSource github;
-	private CommitInfoStore infoStore;
+	private BlameInfoStore infoStore;
 	private SqlOperations sqlOperations;
 	
-	public AnalyzeAction(DataSource source, GithubDataSource github, CommitInfoStore infoStore, SqlOperations sqlOp){
+	public AnalyzeAction(DataSource source, GithubDataSource github, BlameInfoStore infoStore, SqlOperations sqlOp){
 		this.source=source;
 		this.infoStore=infoStore;
 		this.github=github;
@@ -46,8 +50,8 @@ public class AnalyzeAction extends ShibbolethAction {
 			String type = args[0];
 			String repoName = args[1];
 			double accuracy = Double.parseDouble(args[2]);
-			boolean silent = args.length>3 && args[3].equals("-s");
-			execute(type, repoName, accuracy, silent);
+			int promptType = args.length>3 && args[3].equals("-s") ? PROMPT_UNLINKED : PROMPT_ALWAYS;
+			execute(type, repoName, accuracy, promptType);
 		}
 		else{
 			listener.messagePushed("Wrong syntax");
@@ -55,20 +59,21 @@ public class AnalyzeAction extends ShibbolethAction {
 
 	}
 	
-	public void execute(String type, String repoName, double accuracy, boolean silent){
+	public void execute(String type, String repoName, double accuracy, int promptType){
 
-			
 			Repo repo = source.getRepo(repoName);
 			Cloner cloner = new Cloner("clones");
 			File cloneDir = cloner.clone(repo);
 			
 			assert cloneDir.exists();
 			
-			// analyze
-			Blamer b = new Blamer(repo.full_name, cloneDir, infoStore);
-			b.blame();
+			// blame
+			if(!type.equals("saved")){
+				Blamer b = new Blamer(repo.full_name, cloneDir, infoStore);
+				b.blame();
+			}
 			
-			//link
+			// link
 			List<RecordLink> links;
 			
 			List<User> users = new ArrayList<User>();
@@ -128,7 +133,10 @@ public class AnalyzeAction extends ShibbolethAction {
 			
 			int selectedAction = RecordLinkChooser.SAVED;
 			
-			if(!silent || worstSimilarity < accuracy){
+			if(promptType==PROMPT_ALWAYS){
+				selectedAction = RecordLinkChooser.evaluateLinks(links, linkUsers);
+			}
+			else if(promptType==PROMPT_UNLINKED && worstSimilarity < accuracy){
 				selectedAction = RecordLinkChooser.evaluateLinks(links, linkUsers);
 			}
 			
@@ -145,14 +153,13 @@ public class AnalyzeAction extends ShibbolethAction {
 						}
 					}
 				}
+				
 				try {
 					infoStore.writeToDB();
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
 			}
-			
-		
 		
 	}
 	
