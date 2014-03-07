@@ -28,7 +28,8 @@ public class JSFileFilter extends TreeFilter {
 			|| folderName.contains("include") 
 			|| folderName.contains("party")
 			|| folderName.contains("vendor")
-			|| folderName.contains("assets"))
+			|| folderName.contains("assets")
+			|| folderName.contains("node_modules"))
 			{
 				System.out.println(" Blacklisted folder: " + walker.getPathString());
 				return false;

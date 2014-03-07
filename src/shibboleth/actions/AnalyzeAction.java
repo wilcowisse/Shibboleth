@@ -63,7 +63,7 @@ public class AnalyzeAction extends ShibbolethAction {
 
 			Repo repo = source.getRepo(repoName);
 			Cloner cloner = new Cloner("clones");
-			File cloneDir = cloner.clone(repo);
+			File cloneDir = cloner.clone(repo,2000);
 			
 			assert cloneDir.exists();
 			
@@ -160,6 +160,8 @@ public class AnalyzeAction extends ShibbolethAction {
 					e.printStackTrace();
 				}
 			}
+			
+			listener.messagePushed(String.format("Analyzed (%s) %s %f", type, repoName, accuracy));
 		
 	}
 	

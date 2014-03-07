@@ -22,7 +22,6 @@ public class RateAction extends ShibbolethAction{
 	
 	@Override
 	public void execute(String[] args) {
-		assert listener != null;
 		String message = new StringBuilder()
 		.append("Limit: " + rate.getLimit()).append('\n')
 		.append("Remaining: " + rate.getRemaining()).append('\n')

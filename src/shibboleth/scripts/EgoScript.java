@@ -19,7 +19,7 @@ import shibboleth.actions.GetAction;
 import shibboleth.actions.TokenAction;
 import shibboleth.data.JavaScriptFilter;
 import shibboleth.gui.ActionListener;
-import shibboleth.gui.CliActionListener;
+import shibboleth.gui.LogActionListener;
 import shibboleth.model.Contribution;
 import shibboleth.model.GephiGraph;
 import shibboleth.model.Repo;
@@ -37,6 +37,7 @@ public class EgoScript extends Main {
 	private TokenAction tokenAction;
 	private CloneAction clone;
 	private GephiAction gephiExport;
+	private ActionListener log;
 	
 	public EgoScript(String token){
 		useProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxy.holmes.nl", 8080)));
@@ -44,26 +45,28 @@ public class EgoScript extends Main {
 		
 		graph = new GephiGraph();
 		initApp(createSqliteConnection("db/db.sqlite"), graph);
-		ActionListener cli = new CliActionListener();
+		log = new LogActionListener();
 		
 		get = new GetAction(mysqlOnGithub, graph);
-		get.addActionListener(cli);
+		get.addActionListener(log);
 		
 		export = new ExportAction(sqlOperations);
-		export.addActionListener(cli);
+		export.addActionListener(log);
 		
 		analyze = new AnalyzeAction(mysqlOnGithub, github, infoStore, sqlOperations);
-		analyze.addActionListener(cli);
+		analyze.addActionListener(log);
 		
 		tokenAction = new TokenAction(github);
-		tokenAction.addActionListener(cli);
+		tokenAction.addActionListener(log);
 		
 		clone = new CloneAction(mysqlOnGithub);
-		clone.addActionListener(cli);
+		clone.addActionListener(log);
 		
 		gephiExport = new GephiAction(graph);
-		gephiExport.addActionListener(cli);
+		gephiExport.addActionListener(log);
 		
+		
+
 		this.token = token;
 		
 		try {
@@ -85,29 +88,56 @@ public class EgoScript extends Main {
 		bw.write("# egoscript");
 		bw.newLine();
 		
+		final String USER_POINTER = null;
+		final String REPO_POINTER = "Raynos/indexedStore";
+		boolean hasSeenRepoPointer=false;
+		boolean hasSeenUserPointer=false;
+		
 		for(String user : users){
-			System.out.println("\n\n\n\n## USER: " + user + "\n");
 			
+			if(USER_POINTER != null && !hasSeenUserPointer && !user.equals(USER_POINTER)){
+				log.messagePushed("Skipped "+user);
+				continue;
+			}
+			else{
+				hasSeenUserPointer=true;
+			}
+			
+			log.messagePushed("\n\n## USER: " + user + "\n");
 			List<Repo> ownRepos = get.requestContributions(GithubUtil.createUser(user), new JavaScriptFilter(), true);
 			
 			for(Repo repo : ownRepos){
+				if(REPO_POINTER != null && !hasSeenRepoPointer && !repo.full_name.equals(REPO_POINTER)){
+					log.messagePushed("Skipped "+repo);
+					continue;
+				}
+				else{
+					hasSeenRepoPointer=true;
+				}
+				
 				List<Contribution> contributionsToRepo = get.requestContributions(repo, true);
 				if(contributionsToRepo.size()==1 && !contributionsToRepo.get(0).getUser().login.equals(user)){
-					System.out.println("# Repo "+repo.full_name+" has one contribution, but this is " + contributionsToRepo.get(0).getUser().login);
+					log.messagePushed("# Repo "+repo.full_name+" has one contribution, but this is " + contributionsToRepo.get(0).getUser().login);
 				}
 				if(contributionsToRepo.size()==1 && contributionsToRepo.get(0).getUser().login.equals(user)){// only one contributor, which is owner
 					bw.write(repo.full_name + "\t");
-					clone.execute(repo, 2000);
 					
-					bw.write("cloned" + "\t");
-					analyze.execute("jaro", repo.full_name, 1.0, AnalyzeAction.PROMPT_NEVER);
-					bw.write("analyzed" + "\t");
-					List<Integer> filesOfRepo = sqlOperations.getFileIdsOfRepo(repo.full_name);
-					export.execute(filesOfRepo, false);
-					bw.write("exported");
-					bw.newLine();
-					
+					if(clone.execute(repo, 2000)){
+						bw.write("cloned" + "\t");
+						analyze.execute("jaro", repo.full_name, 1.0, AnalyzeAction.PROMPT_NEVER);
+						bw.write("analyzed" + "\t");
+						List<Integer> filesOfRepo = sqlOperations.getFileIdsOfRepo(repo.full_name);
+						export.execute(filesOfRepo, false);
+						bw.write("exported");
+						bw.newLine();
+						log.messagePushed("Rate remaining; "+Integer.toString(rate.getRemaining()));
+					}
+					else{
+						log.messagePushed("Repo "+repo.full_name+" ignored, because cloning failed.");
+					}
+
 				}
+				
 				
 			}
 			
@@ -118,28 +148,28 @@ public class EgoScript extends Main {
 			
 			Files.copy(new File("db","db.sqlite").toPath(), new File("assets/dbs","db."+user+".sqlite").toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-			if(rate.getRemaining()<100){
+			if(rate.getRemaining()>-1 && rate.getRemaining()<100){
 				Main.suspend(rate);
 			}
 			
 		}
 		
 		bw.close();
-		System.out.println("Finished.");
+		log.messagePushed("Finished.");
 	}
 	
 	private String[] users = new String[]{
-			"creationix",
-			"bahamas10",
-			"piroor",
-			"shane-tomlinson",
-			"DamonOehlman",
-			"sindresorhus",
-			"substack",
-			"dominictarr",
-			"tmpvar",
-			"NHQ",
-			"ForbesLindesay",
+	//		"creationix",
+	//		"bahamas10",
+	//		"piroor",
+	//		"shane-tomlinson",
+	//		"DamonOehlman",
+	//		"sindresorhus",
+	//		"substack",
+	//		"dominictarr",
+	//		"tmpvar",
+	//		"NHQ",
+	//		"ForbesLindesay",
 			"Raynos",
 			"carlos8f",
 			"twilson63",

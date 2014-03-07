@@ -119,7 +119,6 @@ public class GetAction extends ShibbolethAction{
 			
 			for(Contribution c : GithubUtil.reposToContributions(rs, u)){
 				graph.addContribution(c);
-				System.out.println(c.getRepo().full_name);
 			}
 			
 			listener.graphChanged("Added " + rs.size() +" contributions of "+u.login, false);

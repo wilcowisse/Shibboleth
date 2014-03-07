@@ -21,9 +21,11 @@ import shibboleth.util.GithubUtil;
 public class CloneAction extends ShibbolethAction{
 	
 	private DataSource source;
+	private Cloner cloner;
 	
 	public CloneAction(DataSource source){
 		this.source=source;
+		cloner = new Cloner("clones");
 	}
 	
 	@Override
@@ -47,25 +49,30 @@ public class CloneAction extends ShibbolethAction{
 	}
 	
 	
-	public void execute(String repoName, int interval){
+	public boolean execute(String repoName, int interval){
 		Repo repo = source.getRepo(repoName);
-		execute(repo, interval);
+		return execute(repo, interval);
 	}
 	
-	public void execute(Repo repo, int interval){
+	public boolean execute(Repo repo, int interval){
 		listener.busyStateChanged(true);
+		boolean successful = false;
 		if(repo != null){
-			Cloner cloner = new Cloner("clones");
-			if(cloner.clone(repo) != null)
-				listener.messagePushed("Cloned repo " + repo.full_name);
-			else
+			long lastCloneTimeStamp = cloner.getLastClonedTime();
+			if(cloner.clone(repo, interval) != null){
+				long delayTime = System.currentTimeMillis() - lastCloneTimeStamp;
+				listener.messagePushed("Cloned " + repo.full_name+". Last clone action was "+ delayTime+ " ms ago." );
+				successful = true;
+			}
+			else{
 				listener.messagePushed("Cloning failed!");
+			}
 		}
 		else{
-			listener.messagePushed("Repo not found on github!");
+			listener.messagePushed("Clone error: Repo not found in source!");
 		}
-		
 		listener.busyStateChanged(false);
+		return successful;
 	}
 
 	@Override

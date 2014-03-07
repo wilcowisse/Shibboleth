@@ -15,21 +15,12 @@ import shibboleth.model.UserChunk;
 public class ExportAction extends ShibbolethAction {
 
 	private SqlOperations sqlOperations;
-
+	private List<String> blackList;
+	
 	public ExportAction(SqlOperations sqlOp){
 		this.sqlOperations = sqlOp;
-	}
-	
-	@Override
-	public void execute(String[] args) {
-		boolean fragmented = args.length > 0 && args[0].equals("-f");
-		List<Integer> files = sqlOperations.getAllFileIds();
 		
-		execute(files,fragmented);
-	}
-	
-	public void execute(List<Integer> files, boolean fragmented){
-		List<String> blackList = new ArrayList<String>();
+		blackList = new ArrayList<String>();
 		BufferedReader br;
 		try {
 			br = new BufferedReader(new FileReader("export/_blacklist.txt"));
@@ -42,6 +33,16 @@ public class ExportAction extends ShibbolethAction {
 		} catch (IOException e) {
 			listener.errorOccurred(e, false);
 		}
+	}
+	
+	@Override
+	public void execute(String[] args) {
+		boolean fragmented = args.length > 0 && args[0].equals("-f");
+		List<Integer> files = sqlOperations.getAllFileIds();
+		execute(files,fragmented);
+	}
+	
+	public void execute(List<Integer> files, boolean fragmented){
 		
 		Exporter exporter = new Exporter(new File("export"), new File("clones"), blackList);
 		
