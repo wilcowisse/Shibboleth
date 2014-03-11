@@ -89,7 +89,7 @@ public class EgoScript extends Main {
 		bw.newLine();
 		
 		final String USER_POINTER = null;
-		final String REPO_POINTER = "Raynos/indexedStore";
+		final String REPO_POINTER = "mapmeld/boston-bikes";
 		boolean hasSeenRepoPointer=false;
 		boolean hasSeenUserPointer=false;
 		
@@ -124,7 +124,7 @@ public class EgoScript extends Main {
 					
 					if(clone.execute(repo, 2000)){
 						bw.write("cloned" + "\t");
-						analyze.execute("jaro", repo.full_name, 1.0, AnalyzeAction.PROMPT_NEVER);
+						analyze.execute("jaro", repo, 1.0, AnalyzeAction.PROMPT_NEVER);
 						bw.write("analyzed" + "\t");
 						List<Integer> filesOfRepo = sqlOperations.getFileIdsOfRepo(repo.full_name);
 						export.execute(filesOfRepo, false);
@@ -170,20 +170,20 @@ public class EgoScript extends Main {
 	//		"tmpvar",
 	//		"NHQ",
 	//		"ForbesLindesay",
-			"Raynos",
-			"carlos8f",
-			"twilson63",
-			"juliangruber",
-			"ajlopez",
-			"neekey",
-			"possibilities",
-			"pgte",
-			"jesusabdullah",
-			"indutny",
-			"bmeck",
-			"fengmk2",
-			"timoxley",
-			"prashtx",
+	//		"Raynos",
+	//		"carlos8f",
+	//		"twilson63",
+	//		"juliangruber",
+	//		"ajlopez",
+	//		"neekey",
+	//		"possibilities",
+	//		"pgte",
+	//		"jesusabdullah",
+	//		"indutny",
+	//		"bmeck",
+	//		"fengmk2",
+	//		"timoxley",
+	//		"prashtx",
 			"mapmeld",
 			"mmalecki",
 			"lepture",

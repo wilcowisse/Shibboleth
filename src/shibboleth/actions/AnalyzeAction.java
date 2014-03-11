@@ -60,11 +60,14 @@ public class AnalyzeAction extends ShibbolethAction {
 	}
 	
 	public void execute(String type, String repoName, double accuracy, int promptType){
+		Repo repo = source.getRepo(repoName);
+		execute(type, repo, accuracy, promptType);
+	}
+	
+	public void execute(String type, Repo repo, double accuracy, int promptType){
 
-			Repo repo = source.getRepo(repoName);
 			Cloner cloner = new Cloner("clones");
 			File cloneDir = cloner.clone(repo,2000);
-			
 			assert cloneDir.exists();
 			
 			// blame
@@ -78,18 +81,18 @@ public class AnalyzeAction extends ShibbolethAction {
 			
 			List<User> users = new ArrayList<User>();
 			if(type.equals("jaro")){
-				users = getUsers(repoName);
-				List<Committer> committers = sqlOperations.getCommitters(repoName);
+				users = getUsers(repo.full_name);
+				List<Committer> committers = sqlOperations.getCommitters(repo.full_name);
 				Linker linker = new JaroWinklerLinker(committers, users, accuracy);
 				links = linker.link();
 			}
 			else if(type.equals("commits")){
-				List<Commit> commits = github.getCommits(repoName);
+				List<Commit> commits = github.getCommits(repo.full_name);
 				Linker linker = new CommitLinker(commits);
 				links=linker.link();
 			}
 			else if(type.equals("saved")){
-				links=sqlOperations.getRecordLinks(repoName);
+				links=sqlOperations.getRecordLinks(repo.full_name);
 			}
 			else{
 				listener.messagePushed("Wrong syntax");
@@ -109,7 +112,7 @@ public class AnalyzeAction extends ShibbolethAction {
 				}
 				
 				if(unknownCommitters.size() > 0) {
-					users = getUsers(repoName);
+					users = getUsers(repo.full_name);
 					Linker jaroLinker = new JaroWinklerLinker(unknownCommitters, users, accuracy);
 					List<RecordLink> unkownLinkedWithJaro  = jaroLinker.link();
 					links.addAll(unkownLinkedWithJaro);
@@ -120,7 +123,7 @@ public class AnalyzeAction extends ShibbolethAction {
 			for(SimpleUser u : users){
 				linkUsers.add(u);
 			}
-			List<SimpleUser> allContributors = GithubUtil.contributionsToUsers(source.getContributions(repoName, true));
+			List<SimpleUser> allContributors = GithubUtil.contributionsToUsers(source.getContributions(repo.full_name, true));
 			for(SimpleUser u : allContributors){
 				if(!linkUsers.contains(u))
 					linkUsers.add(u);
@@ -161,7 +164,7 @@ public class AnalyzeAction extends ShibbolethAction {
 				}
 			}
 			
-			listener.messagePushed(String.format("Analyzed (%s) %s %f", type, repoName, accuracy));
+			listener.messagePushed(String.format("Analyzed (%s) %s %f", type, repo.full_name, accuracy));
 		
 	}
 	
