@@ -40,8 +40,8 @@ public class EgoScript extends Main {
 	private ActionListener log;
 	
 	public EgoScript(String token){
-		useProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxy.holmes.nl", 8080)));
-		//useProxy(Proxy.NO_PROXY);
+		//useProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress("host", 8080)));
+		useProxy(Proxy.NO_PROXY);
 		
 		graph = new GephiGraph();
 		initApp(createSqliteConnection("db/db.sqlite"), graph);
