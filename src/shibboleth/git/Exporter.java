@@ -76,7 +76,7 @@ public class Exporter {
 					first.file.filePath;
 			
 			String copyDest = "export" + "/" +
-					first.committer.repo.replace('/', '-') + "-" +
+					first.committer.repo.replace('/', '#') + "#" +
 					first.file.filePath.replace('/', '-');
 			File sourceFile = new File(source);
 			File copyDestFile = new File(copyDest);

@@ -46,20 +46,19 @@ public class ExportAction extends ShibbolethAction {
 		
 		Exporter exporter = new Exporter(new File("export"), new File("clones"), blackList);
 		
-		try {
 			for(Integer file : files){
-				List<UserChunk> fileChunks = sqlOperations.getFileChunks(file);
-				exporter.export(fileChunks, fragmented);
+				try {
+					List<UserChunk> fileChunks = sqlOperations.getFileChunks(file);
+					exporter.export(fileChunks, fragmented);
+				} catch (SQLException | IOException e) {
+					listener.errorOccurred(e, false);
+				}
 				
 			}
-		} catch (SQLException | IOException e) {
-			e.printStackTrace();
-		}
+		
 		listener.messagePushed("Exported " + files.size() + " files");
 	}
 	
-	
-
 	@Override
 	public String getCommand() {
 		return "export";
