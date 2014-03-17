@@ -19,8 +19,7 @@ import shibboleth.model.UserChunk;
 public class CreateSubSamples {
 	
 	private String exportFoldername="/home/wilco/tmp/export3";
-	private int sizeThreshold=5000; //b
-	private int maxPartitions=35;
+	private int sizeThreshold=9000; //b
 	private boolean verbose=false;
 	private ExportFolder exportFolder;
 	
