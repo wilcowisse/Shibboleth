@@ -1,8 +1,6 @@
 package shibboleth.scripts;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -41,8 +39,8 @@ public class EgoScript extends Main {
 	private ActionListener log;
 	
 	public EgoScript(String token){
-		//useProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress("host", 8080)));
-		useProxy(Proxy.NO_PROXY);
+		useProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxy.holmes.nl", 8080)));
+		//useProxy(Proxy.NO_PROXY);
 		
 		graph = new GephiGraph();
 		initApp(createSqliteConnection("db/db.sqlite"), graph);
@@ -65,32 +63,22 @@ public class EgoScript extends Main {
 		
 		gephiExport = new GephiAction(graph);
 		gephiExport.addActionListener(log);
-		
-		
 
 		this.token = token;
 		
-		try {
-			execute();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		execute();
+	
 	}
 
 	public static void main(String[] args) {
 		new EgoScript(args[0]);
 	}
 	
-	public void execute() throws IOException{
+	public void execute() {
 		tokenAction.execute(token);
 		
-		File indexFile = new File("assets","analyzed_repos.log");
-		BufferedWriter bw = new BufferedWriter(new FileWriter(indexFile, false));
-		bw.write("# egoscript");
-		bw.newLine();
-		
-		final String USER_POINTER = null;
-		final String REPO_POINTER = "mapmeld/boston-bikes";
+		final String USER_POINTER = "briancavalier";
+		final String REPO_POINTER = "briancavalier/aop-s2gx-2013";
 		boolean hasSeenRepoPointer=false;
 		boolean hasSeenUserPointer=false;
 		
@@ -104,10 +92,10 @@ public class EgoScript extends Main {
 				hasSeenUserPointer=true;
 			}
 			
-			User user = get.requestUser(userName);
-			log.messagePushed("\n\n## USER: " + userName + " (type="+user.type+")\n");
 			
-			if(user.type.equals("User")){
+			log.messagePushed("\n\n## USER: " + userName + "\n");
+			User user = get.requestUser(userName);
+			if(user != null && user.type.equals("User")){
 				
 				List<Repo> ownRepos = get.requestContributions(GithubUtil.createUser(userName), new JavaScriptFilter(), true);
 				
@@ -120,41 +108,42 @@ public class EgoScript extends Main {
 						hasSeenRepoPointer=true;
 					}
 					
+					log.messagePushed(" # REPO: " + repo.full_name);
 					List<Contribution> contributionsToRepo = get.requestContributions(repo, true);
-					if(contributionsToRepo.size()==1 && !contributionsToRepo.get(0).getUser().login.equals(userName)){
-						log.messagePushed("# Repo "+repo.full_name+" has one contribution, but this is " + contributionsToRepo.get(0).getUser().login);
-					}
 					if(contributionsToRepo.size()==1 && contributionsToRepo.get(0).getUser().login.equals(userName)){// only one contributor, which is owner
-						bw.write(repo.full_name + "\t");
-						
-						if(clone.execute(repo, 2000)){
-							bw.write("cloned" + "\t");
-							analyze.execute("jaro", repo, 1.0, AnalyzeAction.PROMPT_NEVER);
-							bw.write("analyzed" + "\t");
+						if(clone.execute(repo, 4000)){
+							log.messagePushed("   Analyzing "+ repo.full_name);
+							analyze.execute("jaro", repo, 0.9, AnalyzeAction.PROMPT_NEVER);
+							
+							log.messagePushed("   Exporting "+ repo.full_name);
 							List<Integer> filesOfRepo = sqlOperations.getFileIdsOfRepo(repo.full_name);
 							export.execute(filesOfRepo, false);
-							bw.write("exported");
-							bw.newLine();
-							log.messagePushed("Rate remaining; "+Integer.toString(rate.getRemaining()));
+							
+							log.messagePushed("   Rate remaining: "+Integer.toString(rate.getRemaining()));
 						}
 						else{
-							log.messagePushed("Repo "+repo.full_name+" ignored, because cloning failed.");
+							log.messagePushed("   Repo "+repo.full_name+" ignored, because cloning failed.");
 						}
-	
 					}
-					
 					
 				}
 				
 				graph.layout(GephiGraph.YIFAN_HU, 20000);
 				gephiExport.execute("assets/graphs/"+userName);
 				graph.removeAll();
-				bw.flush();
 				
-				Files.copy(new File("db","db.sqlite").toPath(), new File("assets/dbs","db."+userName+".sqlite").toPath(), StandardCopyOption.REPLACE_EXISTING);
+				try {
+					Files.copy(new File("db","db.sqlite").toPath(), new File("assets/dbs","db."+userName+".sqlite").toPath(), StandardCopyOption.REPLACE_EXISTING);
+				} catch (IOException e) {
+					System.err.println("Failed to copy db/db.sqlite to assets/dbs/db."+userName+".sqlite");
+					e.printStackTrace();
+				}
 			}
 			else{// this is not a user but an organization..
-				System.out.println("Ignored "+user+" because he is of type "+user.type);
+				if(user == null)
+					System.out.println(" User not found!");
+				else
+					System.out.println(" Ignored "+user+" because this is an "+user.type);
 			}
 			
 			if(rate.getRemaining()>-1 && rate.getRemaining()<200){
@@ -163,8 +152,7 @@ public class EgoScript extends Main {
 			
 		}
 		
-		bw.close();
-		log.messagePushed("Finished.");
+		log.messagePushed("\n\nFINISHED!");
 	}
 	
 	private String[] users = new String[]{
@@ -243,7 +231,7 @@ public class EgoScript extends Main {
 			"antimatter15",
 			"felixge",
 			"nathan7",
-			"loiane",
+			//"loiane",
 			"bhurlow",
 			"mafintosh",
 			"twolfson",

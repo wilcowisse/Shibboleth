@@ -197,13 +197,14 @@ public class GithubDataSource implements DataSource{
 		 		String linkHeaderVal = response.getHeaders().getFirstHeaderStringValue("Link");
 		 		Matcher m = linkHeaderPattern.matcher(linkHeaderVal);
 				if (m.find()) {
-					request = requestFactory.buildGetRequest(new GithubUrl(m.group(1)));
+					request = requestFactory.buildGetRequest(new GithubUrl(m.group(1)).withAccessToken(accessToken));
 				    nextpage=true;
 				}
 
 		 	}
 			
 		}
+		
 		return result;
 	}	
 	
@@ -304,6 +305,7 @@ public class GithubDataSource implements DataSource{
 		try {
 			rContributionList = doPaginatedRequest(url, RESTContribution[].class);
 		}catch(HttpResponseException e){
+			
 			System.out.println(e.getMessage());
 		}catch (IOException e) {
 			e.printStackTrace();

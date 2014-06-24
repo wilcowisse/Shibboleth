@@ -62,11 +62,10 @@ public class Exporter {
 		}
 		for(String suspect : suspectlist){
 			if(first.file.filePath.contains(suspect) && fileChunks.size()<3){
-				System.out.println(" Blacklisted " + first.file.filePath + " (Suspect)");
+				//System.out.println(" Blacklisted " + first.file.filePath + " (Suspect)");
 				return;
 			}
 		}
-		
 		
 		List<List<UserChunk>> formattedChunks = BlameUtil.format(fileChunks);
 		
@@ -99,20 +98,19 @@ public class Exporter {
 
 	}
 	
-	private void write(List<UserChunk> chunks, int pos) throws IOException{
-		if(chunks.size() < 1)
+	private void write(List<UserChunk> formattedChunk, int pos) throws IOException{
+		if(formattedChunk.size() < 1)
 			return;
 		
-		UserChunk first = chunks.get(0);
+		UserChunk first = formattedChunk.get(0);
 		
 		String source = 
 				first.committer.repo.replace('/', '-') + "/" +
 				first.file.filePath;
 		
 		String target =
-				first.committer.repo.replace('/', '-') + "-" +
-				first.file.filePath.replace('/', '-') + 
-				"."+pos+"."+ first.getUser().login;
+				first.getUser().login + "#" + first.committer.repo.replace('/', '-') + "#" +
+						 first.file.filePath.replace('/', '-').replaceAll(".js$",  "." + pos + ".part.js");
 						
 		File sourceFile = new File(clonePath, source);
 		File targetFile = new File(exportPath, target);
@@ -120,10 +118,17 @@ public class Exporter {
 		byte[] encoded = Files.readAllBytes(Paths.get(sourceFile.getPath()));
 		String fileContents = Charset.defaultCharset().decode(ByteBuffer.wrap(encoded)).toString();
 		String[] fileLines = fileContents.split("\\r?\\n");
-		String[] slice = Arrays.copyOfRange(fileLines, chunks.get(0).start, chunks.get(chunks.size()-1).end+1);
 		
-		copy(slice, targetFile);
-
+		
+		try{
+			String[] slice = Arrays.copyOfRange(fileLines, formattedChunk.get(0).start, formattedChunk.get(formattedChunk.size()-1).end+1);
+			copy(slice, targetFile);
+		}
+		catch(Exception e){
+			System.out.println("Skipped file.");
+		}
+		
+		
 	}
 
 	private void copy(String[] lines, File dest) throws IOException {
@@ -158,15 +163,17 @@ public class Exporter {
 	 * @throws IOException
 	 */
 	public void writeLog(List<List<UserChunk>> formattedChunks, File copyDestFile) throws IOException{
-		File indexFile = new File("export", "blameinfo.log");
+		File indexFile = new File("export", "blameinfo.txt");
 		
 		BufferedWriter bw = new BufferedWriter(new FileWriter(indexFile, true));
 	    
-		for(List<UserChunk> chunks : formattedChunks){
-			 int start = chunks.get(0).start;
-			 int end = chunks.get(chunks.size()-1).end;
-			 String user = chunks.get(0).getUser().login;
-			 bw.write(copyDestFile.getName() + "\t" + user + "\t" + start + "\t" + end);
+		for(List<UserChunk> formattedChunk : formattedChunks){
+			UserChunk first = formattedChunk.get(0);
+			String user = first.getUser().login;
+			
+			 int start = formattedChunk.get(0).start;
+			 int end = formattedChunk.get(formattedChunk.size()-1).end;
+			 bw.write(user + "\t" + copyDestFile.getName() + "\t" + start + "\t" + end);
 	         bw.newLine();
 		}
 	    bw.close();
@@ -180,7 +187,7 @@ public class Exporter {
 			, "midori"				// http://www.midorijs.com/
 			, "jquery-1."			// http://jquery.com/download/
 			, "jquery.js"			// idem
-			, "jquery.mobile"		// http://jquerymobile.com/
+			, "jquery.mobile."		// http://jquerymobile.com/
 			, "mootools"			// http://mootools.net/download
 			, "prototype"			// http://prototypejs.org/download/
 			, "yui"					// http://yuilibrary.com/yui/quick-start/
