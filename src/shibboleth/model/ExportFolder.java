@@ -1,6 +1,10 @@
 package shibboleth.model;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -10,17 +14,18 @@ import java.util.Map;
 import java.util.Set;
 
 public class ExportFolder{
-	private File path;
 	
 	private Map<String, Map<String, List<File>>> userMap; // username > reponames -> files
 	private Map<String, Integer> fileLength;   // filename -> length
+	private Map<String, Integer> locs;
 	
 	public ExportFolder(File path){
-		this.path=path;
 		
 		File[] dirContent = path.listFiles();
 		userMap = new HashMap<String, Map<String, List<File>>>();
 		fileLength = new HashMap<String, Integer>();
+		locs = new HashMap<String,Integer>();
+		
 		for(File file : dirContent){
 			String filename = file.getName();
 			if(filename.indexOf('#') !=-1){
@@ -45,6 +50,19 @@ public class ExportFolder{
 					repoMap.put(repoId, repoFileList);
 				}
 				
+				BufferedReader reader;
+				int lines = 0;
+				try {
+					reader = new BufferedReader(new FileReader(file));
+					while (reader.readLine() != null) lines++;
+					reader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+					System.exit(1);
+				}
+				
+				locs.put(filename,lines);
+				
 				fileLength.put(filename, (int)file.length());
 				repoFileList.add(file);
 			}
@@ -55,10 +73,6 @@ public class ExportFolder{
 		return userMap.keySet();
 	}
 	
-	public Collection<List<File>> getRepoFiles(String user){ 
-		return userMap.get(user).values();
-	}
-	
 	public Set<String> getRepos(String user){
 		if(userMap.containsKey(user)){
 			return userMap.get(user).keySet();
@@ -66,6 +80,14 @@ public class ExportFolder{
 		else{
 			return null;
 		}
+	}
+	
+	public Collection<List<File>> getUserFiles(String user){ 
+		return userMap.get(user).values();
+	}
+	
+	public List<File> getRepoFiles(String user, String repo){
+		return userMap.get(user).get(repo);
 	}
 	
 	public int length(Collection<List<File>> repoList){
@@ -88,6 +110,34 @@ public class ExportFolder{
 		return length;
 	}
 	
+	public int loc(Collection<List<File>> repoList){
+		int loc = 0;
+		for(List<File> files : repoList){
+			for(File f : files){
+				loc += locs.get(f.getName());
+			}
+		}
+		return loc;
+	}
+	
+	public int loc(List<File> files){
+		int loc = 0;
+
+		for(File f : files){
+			loc += locs.get(f.getName());
+		}
+
+		return loc;
+	}
+	
+	
+	public Collection<Integer> getFileLengths(){
+		return fileLength.values();
+	}
+	
+	public Collection<Integer> getFileLoc(){
+		return locs.values();
+	}
 	
 //	public Collection<Collection<List<File>>> getDirContent(){
 //		Collection<Collection<List<File>>> result = new ArrayList<Collection<List<File>>>();
